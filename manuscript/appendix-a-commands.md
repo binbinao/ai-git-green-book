@@ -8,7 +8,7 @@
 
 如果你从头一路读到这里，你就明白了：**命令是概念的投影，不是概念本身。**
 
-`git branch feature-x` 是"往 `refs/heads/` 写一行文本"的投影；`git commit` 是"把暂存区打包成一颗珠子挂到当前标签上"的投影；`git push --force-with-lease` 是"我打算重写远端项链，但前提是远端在我上次听说之后没被别人动过"的投影。**投影可以有很多种写法**（老的 `checkout` 拆成了新的 `switch`/`restore`，`filter-branch` 被 `filter-repo` 取代，图形工具再把它们包一层按钮），但被投影的那件事——DAG 上的珠子和标签怎么动——五十年不变。
+`git branch feature-x` 是"往 `refs/heads/` 写一行文本"的投影；`git commit` 是"把暂存区打包成一颗珠子挂到当前名牌上"的投影；`git push --force-with-lease` 是"我打算重写远端项链，但前提是远端在我上次听说之后没被别人动过"的投影。**投影可以有很多种写法**（老的 `checkout` 拆成了新的 `switch`/`restore`，`filter-branch` 被 `filter-repo` 取代，图形工具再把它们包一层按钮），但被投影的那件事——DAG 上的珠子和名牌怎么动——五十年不变。
 
 所以本书前十三章从不催你背命令：你先学地图，命令自然归位。等到你真的需要一条命令的时候，你脑子里想的应该是**"我要做什么"**（第三列），不是**"用哪个开关"**（第一列）——中间的翻译工作，第二列告诉你 Git 在物理上真正在做什么，AI 负责把第三列变成第一列。
 
@@ -20,11 +20,11 @@
 
 **表里没有的命令，通常也不需要你知道**。真需要的时候，让 AI 查 `git help <verb>`，或者说人话让它翻译。
 
-**颜色约定**（跟着全书 AI 指令箱统一）：
+**颜色约定**（全书统一，按"要不要人确认、要哪种确认"分级）：
 
-- 🟢 只读 / 造新对象但不动引用 —— 放心跑
-- 🟡 移动引用 / 改工作区 —— AI 先出方案、你按快门
-- 🔴 破坏性 / 影响远端 / 不可逆 —— 每次都必须重新签字
+- 🟢 只读 / 造新对象但不动既有引用 —— AI 可直接放行，无需人确认
+- 🟡 移动引用 / 改工作区 / 动远端，但出了事还有安全网兜底 —— 需人确认：AI 先出方案、你按快门、AI 再执行
+- 🔴 不可逆销毁 / 拆安全网 / 覆盖共享远端 / 涉及凭证 —— 需流程级确认：先备份、先吊销、先打招呼，由你亲手执行
 
 ---
 
@@ -76,7 +76,7 @@
 
 ---
 
-## A.3 分支与检出：给珠子起名字、挪 HEAD、挂标签
+## A.3 分支与检出：给珠子起名字、挪 HEAD、挂名牌
 
 **什么时候用**：开新功能分支、切走去别的分支、给某颗珠子打 tag 做发布记号、临时进 detached HEAD 看看历史版本、清理已合并的旧分支。这一组的共性是**只挪指针，不改历史**——分支和 tag 都是"往 `refs/` 里写一行文本"，代价 O(1)，所以**试错应该大胆，删除不需要恐惧**。
 
@@ -86,15 +86,15 @@
 | 🟢 `git branch -a` | 列出全部分支（本地 + 远程缓存） | "把本地和远程的分支都列一遍。" |
 | 🟢 `git branch -av` | 上一条 + 每个分支指向的 sha 和 message | "列所有分支和它们的当前位置。" |
 | 🟢 `git branch -vv` | 列本地分支 + upstream + 领先/落后多少 commit | "看看我的每个本地分支跟远端相比状态如何。" |
-| 🟡 `git branch <name>` | 在当前 HEAD 位置挂一张新标签（不切换） | "在这里挂个分支叫 xxx，别切过去。" |
-| 🟡 `git branch <name> <sha>` | 在指定 sha 位置挂一张新标签 | "在这颗 commit 上挂个分支叫 rescue/xxx，把孤儿救回来。" |
-| 🟡 `git branch -d <name>` | 摘掉标签（拒绝摘未合并的分支） | "删掉这个分支（如果它已经合并了）。" |
-| 🔴 `git branch -D <name>` | 强制摘标签（含未合并警告） | "强制删这个分支，我知道它还没合并。" |
+| 🟡 `git branch <name>` | 在当前 HEAD 位置挂一张新名牌（不切换） | "在这里挂个分支叫 xxx，别切过去。" |
+| 🟡 `git branch <name> <sha>` | 在指定 sha 位置挂一张新名牌 | "在这颗 commit 上挂个分支叫 rescue/xxx，把孤儿救回来。" |
+| 🟡 `git branch -d <name>` | 摘掉名牌（拒绝摘未合并的分支） | "删掉这个分支（如果它已经合并了）。" |
+| 🟡 `git branch -D <name>` | 强制摘名牌（含未合并警告） | "强制删这个分支，我知道它还没合并。" |
 | 🟢 `git branch --merged main` | 列出所有已合并进 main 的本地分支 | "列出所有已经合并进 main 的本地分支，我准备清。" |
 | 🟢 `git branch -r --merged main` | 已合并进 main 的远程分支 | "远端有哪些分支已经并进 main 可以清了？" |
 | 🟢 `git for-each-ref --sort=-committerdate refs/heads/` | 按最近提交时间排序列出本地分支（找僵尸分支） | "按最后提交时间从新到旧列所有本地分支，我找僵尸。" |
 | 🟡 `git switch <name>` | 把 HEAD 挪到某分支上，铺开工作区（现代版 checkout） | "切到分支 xxx。" |
-| 🟡 `git switch -c <name>` | 挂新标签 + 切过去，一步完成 | "从当前位置开一个新分支叫 xxx 并切过去。" |
+| 🟡 `git switch -c <name>` | 挂新名牌 + 切过去，一步完成 | "从当前位置开一个新分支叫 xxx 并切过去。" |
 | 🟡 `git switch -c <name> <起点>` | 从指定起点开新分支并切过去 | "从 origin/main 开一个新分支叫 feature/x 并切过去。" |
 | 🟡 `git switch -` | 回到上一个待过的分支（`-` 是快捷键） | "切回上一个分支。" |
 | 🟡 `git checkout <sha>` | HEAD 直接指向某颗珠子（detached HEAD） | "进入 detached HEAD 看看这颗 commit 的代码。" |
@@ -147,7 +147,7 @@
 | 🟢 `git bisect run <script>` | 自动跑测试脚本二分 | "用这个脚本自动二分。" |
 | 🟢 `git bisect reset` | 结束二分，HEAD 回到原位置 | "二分完了，收工。" |
 | 🟢 `git describe` | 描述 HEAD 相对最近 tag 的位置 | "HEAD 相对最近的 tag 差多少颗 commit？" |
-| 🟢 `git fsck --lost-found` | 列出所有 unreachable 的对象（孤儿珠子/blob/tree） | "扫一下所有 unreachable 对象，我在找丢的东西。" |
+| 🟢 `git fsck --dangling` | 列出悬空对象（孤儿珠子/blob/tree；仍被 reflog 引用的要加 `--no-reflogs` 才看得到） | "扫一下所有 unreachable 对象，我在找丢的东西。" |
 | 🟢 `git ls-files -u` | 列出 index 里所有 stage != 0 的条目（底层查冲突） | "底层看看 index 里的冲突条目。" |
 | 🟢 `git diff --check` | 查找漏删的 `<<<<<<<` 冲突标记 | "扫一遍看有没有漏删的冲突标记。" |
 | 🟢 `git diff --ours <file>` | 我的最终版本 vs ours 侧 | "我改完的版本相对 ours 侧改了什么？" |
@@ -157,7 +157,7 @@
 
 ## A.5 远程同步：本地项链和远端项链互相对齐
 
-**什么时候用**：早上开工先同步一下、推自己的 feature 分支上去、别人的分支下来 review、清理已经删掉的远程分支缓存、协作时用 `--force-with-lease` 安全地重写共享分支。这一组是**全书唯一会碰网络**的命令族——记住只有 5 个：`clone / fetch / pull / push / remote update`，其他一切都在本地。
+**什么时候用**：早上开工先同步一下、推自己的 feature 分支上去、别人的分支下来 review、清理已经删掉的远程分支缓存、协作时用 `--force-with-lease` 安全地重写共享分支。这一组是**全书唯一会碰网络**的命令族——跨网的就是 fetch 家族与 push：`clone / fetch / pull / push / ls-remote / remote show / remote update` 都是它的变体，其他一切都在本地。
 
 | 命令 | 它在做什么（概念语言） | 想用 AI 说人话怎么说 |
 |---|---|---|
@@ -175,17 +175,17 @@
 | 🟡 `git push -u origin <branch>` | 首次推 + 建立 upstream 追踪 | "首次推这条分支，顺便把 upstream 挂上。" |
 | 🟡 `git push origin <tag>` | 推指定 tag | "把这个 tag 推到 origin。" |
 | 🟡 `git push --tags` | 推所有本地 tag | "把所有本地 tag 都推上去。" |
-| 🔴 `git push --force-with-lease` | 温柔版 force：只在远端"没在你上次 fetch 之后变过"才允许 | "我要重写这条分支的历史推上去，用温柔版 force。（先确认没人在我之后 push）" |
+| 🟡 `git push --force-with-lease` | 温柔版 force：只在远端"没在你上次 fetch 之后变过"才允许 | "我要重写这条分支的历史推上去，用温柔版 force。（先确认没人在我之后 push）" |
 | 🔴 `git push --force` | 核武器 force，无条件覆盖 | "无条件强推。（绝大多数场景该用 --force-with-lease）" |
-| 🔴 `git push origin --delete <tag>` | 删远端 tag | "把远端这个 tag 删掉。" |
+| 🟡 `git push origin --delete <tag>` | 删远端 tag | "把远端这个 tag 删掉。" |
 | 🔴 `git push --force --all` | 强推所有分支（历史清理后使用） | "清完历史了，把所有分支强推上去。" |
 | 🟢 `git config --global pull.rebase true` | 把默认 `pull` 行为设为 rebase | "把默认 pull 改成 rebase，别再造 merge commit。" |
 
 ---
 
-## A.6 历史重塑：造新珠子 + 挪标签 + 旧珠子进 reflog
+## A.6 历史重塑：造新珠子 + 挪名牌 + 旧珠子进 reflog
 
-**什么时候用**：合两条分支、把一条分支重播到另一条之上让历史线性化、撤销一颗已经 push 出去的珠子、把工作区/暂存区/HEAD 一键回到某个位置、把某颗珠子摘到当前分支上、临时把改动塞进抽屉。这一组是**全书最危险的一组**——所有"重写历史"都不是真的改珠子（珠子不可变），而是**造一批新珠子 + 挪标签 + 旧珠子进 reflog**，30 天内都能救。共享分支上永远优先 `revert`，不用 `reset`。
+**什么时候用**：合两条分支、把一条分支重播到另一条之上让历史线性化、撤销一颗已经 push 出去的珠子、把工作区/暂存区/HEAD 一键回到某个位置、把某颗珠子摘到当前分支上、临时把改动塞进抽屉。这一组是**全书最危险的一组**——所有"重写历史"都不是真的改珠子（珠子不可变），而是**造一批新珠子 + 挪名牌 + 旧珠子进 reflog**，30 天内都能救。共享分支上永远优先 `revert`，不用 `reset`。
 
 ### merge 系（合流）
 
@@ -204,18 +204,18 @@
 | 🟡 `git rebase <base>` | 把当前分支的独有 commit 重播到 `<base>` 之上（线性化） | "把我这条分支 rebase 到 main 最新上。" |
 | 🟡 `git rebase -i <base>` | 交互式：pick/reword/squash/fixup/drop/reorder | "交互式重整我最近的 N 颗 commit：合并这两颗、reword 这一颗、丢掉那颗。" |
 | 🟡 `git rebase --continue` | 冲突解决完，继续重播下一颗 | "冲突解完了，rebase 继续。" |
-| 🔴 `git rebase --skip` | 跳过当前正在重播的珠子（罕见，慎用） | "跳过这颗（我知道我在干什么）。" |
+| 🟡 `git rebase --skip` | 跳过当前正在重播的珠子（罕见，慎用） | "跳过这颗（我知道我在干什么）。" |
 | 🟢 `git rebase --abort` | 完全放弃这次 rebase，回到开始前 | "rebase 越搞越乱，放弃，回到原状。" |
 
-### reset 系（挪标签，可能顺带改暂存/工作区）
+### reset 系（挪名牌，可能顺带改暂存/工作区）
 
 | 命令 | 它在做什么（概念语言） | 想用 AI 说人话怎么说 |
 |---|---|---|
-| 🟡 `git reset --soft <target>` | 只挪当前分支标签，暂存区和工作目录都不动 | "把分支指针挪到那儿，改动全留在暂存区。" |
-| 🟡 `git reset --mixed <target>` | 挪标签 + 重置暂存区（默认） | "挪分支指针，暂存区一并重置，工作区改动保留。" |
-| 🔴 `git reset --hard <target>` | 挪标签 + 重置暂存区 + 重置工作目录（危险） | "所有东西一键回到那颗 commit（我确认丢掉当前所有未 commit 改动）。" |
+| 🟡 `git reset --soft <target>` | 只挪当前分支名牌，暂存区和工作目录都不动 | "把分支指针挪到那儿，改动全留在暂存区。" |
+| 🟡 `git reset --mixed <target>` | 挪名牌 + 重置暂存区（默认） | "挪分支指针，暂存区一并重置，工作区改动保留。" |
+| 🟡 `git reset --hard <target>` | 挪名牌 + 重置暂存区 + 重置工作目录（危险） | "所有东西一键回到那颗 commit（我确认丢掉当前所有未 commit 改动）。" |
 | 🟢 `git reset ORIG_HEAD` | 撤销刚才的 merge/rebase/reset，一键回到操作前 | "刚才那次 merge/rebase 白搞了，一键回到操作前。" |
-| 🔴 `git reset --hard HEAD@{N}` | 精确回到 reflog 里第 N 条记录的位置 | "回到 reflog 里那个位置。" |
+| 🟡 `git reset --hard HEAD@{N}` | 精确回到 reflog 里第 N 条记录的位置 | "回到 reflog 里那个位置。" |
 
 ### revert 系（造抵消珠子）
 
@@ -245,7 +245,7 @@
 | 🟢 `git stash show -p [stash@{N}]` | 看某格的 diff | "第 N 个抽屉里到底是什么改动，diff 给我看。" |
 | 🟡 `git stash apply [stash@{N}]` | 从抽屉取出，不销毁抽屉 | "从抽屉取出来，抽屉别销毁。" |
 | 🟡 `git stash pop [stash@{N}]` | 取出 + 销毁（冲突时不销毁） | "把抽屉里那格取出来用掉。" |
-| 🔴 `git stash drop [stash@{N}]` | 只销毁抽屉（不取出） | "把那格抽屉直接扔掉。" |
+| 🟡 `git stash drop [stash@{N}]` | 只销毁抽屉（不取出） | "把那格抽屉直接扔掉。" |
 
 ---
 
@@ -316,7 +316,7 @@
 | 🟡 `git tag <name>` | 挂一个轻量 tag（就是一行文本引用） | "在这儿打个轻量 tag。" |
 | 🟡 `git tag -a <name> -m "..."` | 附注 tag：有作者、日期、message | "打个正式的附注 tag，我要写 release note。" |
 | 🟡 `git tag -a <name> <sha>` | 在指定 sha 上打附注 tag | "给那颗历史 commit 补一个 v1.0 tag。" |
-| 🔴 `git tag -d <name>` | 删本地 tag | "本地删掉这个 tag。" |
+| 🟡 `git tag -d <name>` | 删本地 tag | "本地删掉这个 tag。" |
 
 ### submodule / subtree
 
@@ -346,8 +346,8 @@
 
 | 命令 | 它在做什么（概念语言） | 想用 AI 说人话怎么说 |
 |---|---|---|
-| 🟢 `gitleaks detect --no-git` | 扫当前工作区的机密（不看历史） | "扫一下工作区有没有泄漏的密钥。" |
-| 🟢 `gitleaks detect --source .` | 扫当前 commit 的机密 | "扫这次 commit 有没有敏感信息。" |
+| 🟢 `gitleaks dir .` | 扫当前工作区的机密（不看历史） | "扫一下工作区有没有泄漏的密钥。" |
+| 🟢 `gitleaks git .` | 扫整个历史的机密 | "扫一遍全部历史有没有敏感信息。" |
 | 🟢 `trufflehog git file://.` | 扫全历史的机密（备选工具） | "跑一遍 trufflehog 扫整个历史。" |
 | 🟡 `pre-commit install` | 装 pre-commit 框架，登记本地钩子 | "装 pre-commit 框架，我要每次 commit 前自动扫敏感信息。" |
 | 🟢 `pre-commit run --all-files` | 全量试跑一遍所有 hook | "先全量跑一遍 pre-commit，看看有没有漏网。" |
@@ -360,19 +360,19 @@
 | 🟡 `gh pr merge <num> --squash` | squash 合并 PR | "把 PR #123 squash 合并。" |
 | 🟡 `gh pr checkout <num>` | 把 PR 分支 checkout 到本地 | "把 PR #123 的分支 checkout 到本地跑一下。" |
 | 🟡 `gh repo edit --enable-auto-merge` | 开启仓库自动合并 | "开启这个仓库的自动合并。" |
-| 🟢 `gh api repos/:owner/:repo/branches/main/protection` | 查看分支保护配置 | "看一下 main 分支的保护规则怎么配的。" |
+| 🟢 `gh api repos/{owner}/{repo}/branches/main/protection` | 查看分支保护配置（需要仓库管理员权限，否则 404） | "看一下 main 分支的保护规则怎么配的。" |
 | 🟡 `git lfs lock <file>` | Git LFS 加锁：声明"这个大二进制文件我在改" | "把这个 psd 文件加锁，防止别人同时改。" |
 
 ---
 
 ## 覆盖度自查
 
-本表覆盖第 0 章到第 13 章各章命令侧栏以及正文中出现的所有命令，按概念地图七大分组重排（**非字母序**）：
+本表覆盖第 0 章到第 14 章各章命令侧栏以及正文中出现的所有命令（第 14 章是结语，不引入新命令），按概念地图七大分组重排（**非字母序**）：
 
 1. **仓库**（§A.1）—— `init` / `clone` / `ls-remote` / `rev-parse` / `count-objects` / `fsck --strict` —— 对应第 1 章
 2. **提交三区**（§A.2）—— `status` / `diff` / `add` / `restore` / `commit` / `--amend` / `show` —— 对应第 2 章、第 6 章
 3. **分支与检出**（§A.3）—— `branch` / `switch` / `checkout` / `for-each-ref` —— 对应第 3 章、第 7 章
-4. **历史与检查**（§A.4）—— `log` / `show` / `blame` / `shortlog` / `reflog` / `bisect` / `describe` / `fsck --lost-found` / `ls-files -u` / `diff --check` —— 对应第 5 章、第 10 章、第 11 章
+4. **历史与检查**（§A.4）—— `log` / `show` / `blame` / `shortlog` / `reflog` / `bisect` / `describe` / `fsck --dangling` / `ls-files -u` / `diff --check` —— 对应第 5 章、第 10 章、第 11 章
 5. **远程同步**（§A.5）—— `remote` / `fetch` / `pull` / `push` / `--force-with-lease` / `--prune` —— 对应第 4 章
 6. **历史重塑**（§A.6）—— `merge` / `rebase` / `reset` / `revert` / `cherry-pick` / `stash` / `mergetool` —— 对应第 5 章、第 9 章、第 10 章、第 13 章
 7. **清理与维护**（§A.7）—— `clean` / `gc` / `maintenance` / `worktree` / `filter-repo` —— 对应第 8 章、第 10 章、第 12 章、第 13 章

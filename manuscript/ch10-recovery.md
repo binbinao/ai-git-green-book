@@ -50,7 +50,7 @@ Deleted branch experiment/new-parser (was a1b2c3d).
 
 > **Git 几乎什么都不扔。**
 
-你在本地做过的任何一个动作，哪怕是删分支、reset --hard、rebase 搞砸——被"清扫掉"的珠子几乎永远还在 `.git/objects/` 里躺着，`.git/logs/` 里记着它上一秒还挂在哪张标签上。第 5 章讲过 reflog 的机制，那时候讲的是"重写历史的原理"；这一章讲的是**同一个机制换成应急视角——每一次紧急抢救时，你要相信什么、找什么、按什么顺序按下什么命令**。
+你在本地做过的任何一个动作，哪怕是删分支、reset --hard、rebase 搞砸——被"清扫掉"的珠子几乎永远还在 `.git/objects/` 里躺着，`.git/logs/` 里记着它上一秒还挂在哪张名牌上。第 5 章讲过 reflog 的机制，那时候讲的是"重写历史的原理"；这一章讲的是**同一个机制换成应急视角——每一次紧急抢救时，你要相信什么、找什么、按什么顺序按下什么命令**。
 
 第三件要交给你的事——**"事故第一小时"清单**。任何 Git 事故发生后，**未来 60 分钟内，你要遵守的四条纪律**：
 
@@ -71,9 +71,9 @@ Deleted branch experiment/new-parser (was a1b2c3d).
 
 这句话里三个字最要紧：**\"本地\"、\"记录过\"、\"绝大多数\"**。展开三条推论：
 
-**推论一：只要一个对象被 Git 造过一次（`git add` 或 `git commit`），它就获得了 30-90 天的托管期。**
+**推论一：对象被 Git 造过一次就有托管期——但"30-90 天"要拆成两条线看。**
 
-第 5 章讲过 reflog 保留期：`gc.reflogExpire = 90 天`、`gc.reflogExpireUnreachable = 30 天`。默认配置下，**一颗"没人再指着的孤儿珠子"，Git 还会替你保管 30 天才真的去 gc 它**。这段时间里它躺在 `.git/objects/`，你能用 `git fsck --lost-found` 把它找出来，能用 `git show <sha>` 看它的内容，能用 `git branch rescue <sha>` 把它接回项链。
+30/90 天是 **reflog 条目**的保留期，不是对象本身的：**commit 过的珠子**（reflog 里有它的 `commit:` 行）受 `gc.reflogExpire = 90 天` / `gc.reflogExpireUnreachable = 30 天` 保护——一颗"没人再指着的孤儿珠子"，Git 还会替你保管约 30 天才真的去 gc 它；而**只 `git add` 过、从未 commit 的 blob** 不写 reflog，只受 `gc.pruneExpire` 保护（默认约 2 周）——一旦有人跑 `gc --prune=now`，立即归零。这段时间里它们躺在 `.git/objects/`，你能用 `git show <sha>` 看它的内容，能用 `git branch rescue <sha>` 把 commit 接回项链。找孤儿用 `git fsck --dangling`——但注意它默认把 reflog 当可达根，**还挂在 reflog 上的珠子它不列**：那部分去读 reflog，或者加 `--no-reflogs`。
 
 **推论二：\"从来没被 Git 记录过的东西\"是唯一真正的坏消息。**
 
@@ -137,10 +137,10 @@ Deleted branch experiment/new-parser (was a1b2c3d).
 先冷静评估三件事：
 
 1. **那个分支上的提交对象**——`.git/objects/` 里，**还在**。删除分支只是删了 `.git/refs/heads/experiment/new-parser` 那个文件（41 字节的文本文件，第 3 章讲过），提交对象本身没被动过。
-2. **reflog 里的记录**——**还在**。`.git/logs/refs/heads/experiment/new-parser` 这个文件也**还在**（Git 删分支时不会立刻删除对应的 log 文件——它甚至会保留到下次 gc）。所以你能翻它。
+2. **reflog 里的记录**——**分支自己的那份跟着分支一起没了**。`git branch -D` 会连带删除 `.git/logs/refs/heads/experiment/new-parser`。能救你的是 **HEAD reflog**（`git reflog`——你在这条分支上 commit 时留下了 `commit:` 行），以及加 `--no-reflogs` 的对象扫描。
 3. **未合并的珠子在 30 天的托管期内**——**是**。默认 `gc.reflogExpireUnreachable = 30 天`，30 天内 `git gc` 不会去清扫它。
 
-**结论**：这颗珠子完全没事。你只是暂时找不到通往它的路，路标（分支标签）刚被你摘了。
+**结论**：这颗珠子完全没事。你只是暂时找不到通往它的路，路标（分支名牌）刚被你摘了。
 
 ### 恢复步骤
 
@@ -170,7 +170,7 @@ Date:   Wed Sep 8 14:22:31 2026 +0800
 
 **第三步**（AI 指令）：把分支挂回去。
 
-> 「用 `git branch experiment/new-parser <sha>` 把这颗珠子重新挂上一个分支标签。执行完之后 `git branch -a | grep experiment` 确认标签回来了。」
+> 「用 `git branch experiment/new-parser <sha>` 把这颗珠子重新挂上一个分支名牌。执行完之后 `git branch -a | grep experiment` 确认名牌回来了。」
 
 Git 会创建一个新的 `.git/refs/heads/experiment/new-parser` 文件，写入那个 SHA。**41 字节的文件、耗时不到一毫秒**——你复原了刚才那 0.5 秒犹豫造成的所有\"损失\"。
 
@@ -185,10 +185,10 @@ git reflog --all --date=iso | grep -i "new-parser\|experiment"
 或者更宽的：
 
 ```
-git fsck --lost-found
+git fsck --dangling
 ```
 
-`fsck --lost-found` 会把所有\"unreachable\"（没有任何引用指着的）提交列出来——里面就有你那颗孤儿珠子。逐个 `git show` 核对，找到目标 SHA。
+`fsck --dangling` 会把所有\"unreachable\"（没有任何引用指着的）提交列出来——里面就有你那颗孤儿珠子。逐个 `git show` 核对，找到目标 SHA。⚠️ 它默认把 reflog 当可达根——只被 reflog 引用的珠子不会列出来，那部分去读 reflog，或加 `--no-reflogs`。
 
 ### 预防
 
@@ -223,10 +223,10 @@ HEAD is now at c4d5e6f 初步搭结算页骨架
 
 先分类看：
 
-- **已经 `git add` 过的改动**——**能救**（几乎肯定）。`git add` 会把文件的 blob 对象写进 `.git/objects/`。blob 一旦被造出来，就受 30 天托管期保护。用 `git fsck --lost-found` 能找到它。
+- **已经 `git add` 过的改动**——**能救**（几乎肯定，但要快）。`git add` 会把文件的 blob 对象写进 `.git/objects/`。但 blob 不写 reflog，只受 `gc.pruneExpire` 保护（默认约 2 周），一旦有人跑 `gc --prune=now` 就归零——**发现得越早越好**。用 `git fsck --dangling` 能找到它。
 - **只在工作目录、从来没 `add` 过的改动**——**大概率救不回**。Git 从来没见过这个内容，`.git/objects/` 里没有对应 blob，reflog 里也没记录。**这是本章唯一\"真的没了\"的情形**——第 10.2 节的推论二在这里兑现。
 
-**为什么必须诚实说这条？** 因为很多"Git 万能救援"的说法会让人误以为 reflog 是万灵药，结果 `reset --hard` 完之后花两小时找 AI 折腾，最后一无所获——**心里的怨气比丢掉的两小时还大**。**真相是清楚的**：\"只在工作区从没进入过 Git 视野\"的内容，Git 没法救。这就是 `reset --hard` 被列为 Git 里最危险的一档命令（第 5 章 §5.6）、也是 Claude Code 官方建议 `deny` 掉 `Bash(git reset --hard*)` 的根本原因。
+**为什么必须诚实说这条？** 因为很多"Git 万能救援"的说法会让人误以为 reflog 是万灵药，结果 `reset --hard` 完之后花两小时找 AI 折腾，最后一无所获——**心里的怨气比丢掉的两小时还大**。**真相是清楚的**：\"只在工作区从没进入过 Git 视野\"的内容，Git 没法救。这就是 `reset --hard` 被列为 Git 里最危险的一档命令（第 5 章 §5.6）、也是社区通行的最小权限配置里把 `deny` 掉 `Bash(git reset --hard*)` 当标准项的根本原因。
 
 ### 恢复步骤
 
@@ -236,7 +236,7 @@ HEAD is now at c4d5e6f 初步搭结算页骨架
 
 **第一步**：找出所有\"孤儿 blob\"。
 
-> 「用 `git fsck --lost-found` 列出所有 unreachable 的对象。特别关注 `dangling blob <sha>` 这一类——那是我 `add` 过但没 commit 的文件内容。逐个 `git show <sha> | head -20` 展示前 20 行，让我核对。」
+> 「用 `git fsck --dangling` 列出所有 unreachable 的对象。特别关注 `dangling blob <sha>` 这一类——那是我 `add` 过但没 commit 的文件内容。逐个 `git show <sha> | head -20` 展示前 20 行，让我核对。」
 
 AI 会输出类似：
 
@@ -251,6 +251,8 @@ dangling commit ...
 **第三步**：把 blob 内容还原成文件。
 
 > 「找到之后用 `git show <blob-sha> > app/settings.py` 把内容还原成文件。让我确认恢复的是我要的版本。」
+
+> 顺带一提：`git fsck --lost-found` 是 `--dangling` 的"写盘版"——它会把捞到的内容按 SHA 落成文件，`.git/lost-found/other/<sha>` 里就是你要找回的原文，比 `git show > path` 省事。但也正因为**它写盘**，别把它当纯只读的诊断命令用。
 
 **类别 B：从没 `add` 过的改动（大概率没了）**
 
@@ -294,10 +296,10 @@ Successfully rebased and updated refs/heads/feature/checkout-v2.
 rebase 是本章救援机制最优雅的一个场景——因为 rebase 的每一步都被 reflog 详细记录着。
 
 - **rebase 前 12 颗旧珠子**——**都在**。它们的 SHA 全部保留在 `.git/objects/`，reflog 里明确记着 `rebase (start): checkout main` 这一行之前 feature 指向哪个 SHA。
-- **`ORIG_HEAD`**——Git 会在每次 rebase / merge / reset 之前把 HEAD 的当前值保存到 `.git/ORIG_HEAD` 这个特殊指针里。这是 Git 给你留的\"上一秒我在哪\"的书签。
+- **`ORIG_HEAD`**——Git 会在每次 rebase / merge / reset 之前把 HEAD 的当前值保存到 `.git/ORIG_HEAD` 这个特殊指针里。这是 Git 给你留的\"上一秒我在哪\"的书签。⚠️ 但它是**单槽位**：之后任何一次 merge / reset / cherry-pick 都会把它覆盖掉——事故隔了很久才发现时别指望它还在，以 reflog 为准。
 - **rebase 生成的 9 颗新珠子**——**也在**，你现在正站在它们上面。
 
-所以救援的物理动作很简单：**要么把 feature 标签整个挪回 rebase 之前的位置（放弃这次 rebase 重新来）、要么只把丢失的第 5 颗 cherry-pick 过来（保留 rebase 结果，补上丢的）**。选哪种取决于你对新 rebase 结果的信任度。
+所以救援的物理动作很简单：**要么把 feature 名牌整个挪回 rebase 之前的位置（放弃这次 rebase 重新来）、要么只把丢失的第 5 颗 cherry-pick 过来（保留 rebase 结果，补上丢的）**。选哪种取决于你对新 rebase 结果的信任度。
 
 ### 恢复步骤
 
@@ -311,7 +313,7 @@ rebase 是本章救援机制最优雅的一个场景——因为 rebase 的每�
 
 **第三步**：一键回退。
 
-> 「用 `git reset --hard ORIG_HEAD` 把 feature 标签整个挪回 rebase 之前。展示 `git log --oneline main..HEAD` 确认现在有 12 颗珠子。」
+> 「用 `git reset --hard ORIG_HEAD` 把 feature 名牌整个挪回 rebase 之前。展示 `git log --oneline main..HEAD` 确认现在有 12 颗珠子。」
 
 **这一步之后你回到了 rebase 之前的状态**。慢慢再来一次 rebase，这次每颗冲突小心处理。
 
@@ -335,7 +337,7 @@ rebase 是本章救援机制最优雅的一个场景——因为 rebase 的每�
 
 **一键刹车**：`git rebase --abort`。
 
-**`--abort` 是 rebase 的天然撤销键**：只要你还在 rebase 进行中（`.git/rebase-merge/` 或 `.git/rebase-apply/` 目录存在），无论走到第几颗、无论解过几次冲突、无论 continue 过几次——**`--abort` 会把 feature 标签恢复到 rebase 开始前的位置，就像什么都没发生过**。第 5 章讲过这一条，这里再强调一遍：**rebase 中途觉得不对 → `--abort` → 什么都没发生**。
+**`--abort` 是 rebase 的天然撤销键**：只要你还在 rebase 进行中（`.git/rebase-merge/` 或 `.git/rebase-apply/` 目录存在），无论走到第几颗、无论解过几次冲突、无论 continue 过几次——**`--abort` 会把 feature 名牌恢复到 rebase 开始前的位置，就像什么都没发生过**。第 5 章讲过这一条，这里再强调一遍：**rebase 中途觉得不对 → `--abort` → 什么都没发生**。
 
 **认清楚 abort 的边界**：一旦你看到 `Successfully rebased`，rebase 就结束了，`--abort` 就不能用了——这时候只能走 ORIG_HEAD / reflog 的路子。
 
@@ -380,7 +382,7 @@ review 意见回来了：\"提交太散了，整理成几个原子提交\"。你
 
 ### 恢复步骤
 
-**第一步**（叫团队 + 现场冻结）：立刻在群里喊住小李和小王——**不要 pull，不要 fetch，尤其不要 pull --rebase**。他们本地的旧状态就是你的救命稻草，一次 pull 可能就把它污染了。
+**第一步**（叫团队 + 现场冻结）：立刻在群里喊住小李和小王——**不要 pull（以及 merge / rebase）**。他们本地的旧状态就是你的救命稻草，一次 pull 可能就把它污染了。fetch 不用禁——它只把远端状态拍照进 `origin/*` 缓存，不动任何本地分支。
 
 > 「@小李 @小王 停一下！！我刚 rebase 完把远端搞乱了，你们**先什么都别动**。等我 5 分钟。」
 
@@ -392,9 +394,14 @@ review 意见回来了：\"提交太散了，整理成几个原子提交\"。你
 
 **第三步**（人工确认点）：核对这份状态包含所有该有的 commit（你的、小李的、小王的、这两周所有该有的）。
 
-**第四步**（恢复远端）：让小李把他本地的完整旧状态强推回去。
+**第四步**（恢复远端）：让小李按下面三步把他手上的完整旧状态推回去——**顺序很重要**。
 
-> 「小李，你现在**先不要 fetch**——直接在你当前分支上 `git push --force-with-lease origin feature/checkout-v2`。这一步会用你本地的完整历史覆盖我刚才推坏的远端状态。执行完之后我们所有人再 fetch。」
+> 「小李，按顺序做三件事：
+> ① 先把你手上的黄金状态钉住（这一步让你敢做后面的事）：`git branch rescue/golden feature/checkout-v2`
+> ② 再 `git fetch origin`——只更新 `origin/*` 缓存，不碰你任何本地分支
+> ③ 然后在你当前分支上 `git push --force-with-lease origin feature/checkout-v2`，把完整历史覆盖回远端。」
+
+**为什么第 ② 步必须 fetch？** `--force-with-lease` 检查的是"远端此刻的 SHA 等于我缓存里的 SHA 吗"。小李上次 fetch 之后远端已经被你改过——他直接推，Git 会以 `! [rejected] (stale info)` 拒绝他。先 fetch 把缓存对齐到远端现状，lease 才放行；而黄金 SHA 已经钉在 `rescue/golden` 分支上，fetch 动不了它。
 
 **这里为什么让小李而不是你自己推？** 因为**你本地已经被你自己 rebase 污染了**，而小李本地是干净的原始状态。**\"谁手上的副本最干净，谁就是恢复者\"**——这是分布式恢复的核心原则。
 
@@ -410,13 +417,13 @@ review 意见回来了：\"提交太散了，整理成几个原子提交\"。你
 - **服务器上的 checkout**：staging / dev 环境如果部署的是 `git pull` 拉的代码，那台机器上也可能有旧状态。
 - **Git 服务端的 reflog**：**GitLab / Gitea 有服务端 reflog 且默认保留几周**（GitHub 也有类似机制但不对外暴露 API，需要联系 support）。**这是最后的兜底**——服务端 reflog 里记着 `feature/checkout-v2` 从 SHA X 变到 SHA Y 的每一步，联系管理员或用 API 能翻出\"事故发生前那一秒远端指向哪个 SHA\"。有了那个 SHA，恢复就变成一次 `push --force` 到那个 SHA。
 
-**这就是为什么 force push 到共享分支被列为黄色操作、Claude Code 建议 `deny` 掉 `Bash(git push --force*)`——不是因为它\"不可救\"，是因为\"救援成本\"随着传播时间指数上升**。事故发生后 5 分钟内叫住团队 → 一次 force-with-lease 搞定；30 分钟后所有人都 pull 过 → 要联系 Git 服务端管理员翻服务端 reflog。**代价差 10 倍**。
+**这就是为什么 force push 到共享分支被列为红色操作、社区通行的最小权限配置里 `deny` 掉 `Bash(git push --force*)` 是标准项——不是因为它\"不可救\"，是因为\"救援成本\"随着传播时间指数上升**。事故发生后 5 分钟内叫住团队 → 一次 force-with-lease 搞定；30 分钟后所有人都 pull 过 → 要联系 Git 服务端管理员翻服务端 reflog。**代价差 10 倍**。
 
 ### 预防
 
 - **黄金规则再念一次**（第 5 章）：**不要 rebase 已推送到共享分支的 commit**。这条 force push 灾难 90% 是这条规则被违反造成的。
 - **push 之前问一句\"这条分支有别人推过 commit 吗\"**：`git log <branch> --format='%an' | sort -u`——如果作者列表里有别人，你 rebase 前必须先在群里问一句。
-- **`--force-with-lease` 不是免死金牌**：`--force-with-lease` 只保证\"远端没在你上次 fetch 之后被别人改过\"——如果你 fetch 完到 push 之间那 30 秒里同事没推东西，lease 是通过的，但**如果同事上周就推过而你没 fetch**，lease 完全无能为力。
+- **`--force-with-lease` 不是免死金牌**：它只回答一个问题——\"远端此刻的 SHA 等于我缓存里的 SHA 吗\"。它**拦得住**的是你没 fetch、缓存陈旧的情形（远端被别人动过而你不知道，lease 直接拒绝）；它**拦不住**的是你 fetch 之后又把别人的提交从分支上抹掉——缓存等于远端，检查必然通过。**本次事故正是后一种**：你 rebase 前 fetch 过，lease 没能拦住你挤掉小李的珠子。想兼得"保护"和"对齐预期"，用带期望值的形式：`git push --force-with-lease=<branch>:<你期望远端仍是的那颗 SHA>`；再配 `--force-if-includes` 兜住 IDE 后台自动 fetch 把缓存刷掉的情形。
 - **分支保护规则**：GitHub / GitLab / Gitea 都支持在共享分支上禁用 force push、要求 PR review 才能合并——这是**工具层**的兜底，比任何\"规矩\"都可靠。**任何 shared 分支（main、develop、release/*、shared feature branches）都应该开分支保护**。
 
 ---
@@ -489,7 +496,7 @@ $ git push
 
 **第三步**（**只在 secret 出现在多颗历史 commit 里时**）：用 `git filter-repo` 从整个历史里清除 `.env`。
 
-> 「用 `git filter-repo --path .env --invert-paths --force` 从整个 git 历史里彻底删除 `.env` 这个文件。这是**红色操作**——它会**重写所有 commit 的 SHA**，团队所有人都必须重新 clone。执行前请**再次确认**：（1）我已经吊销了 key；（2）我已经在群里通知了所有协作者；（3）我已经备份了 clean 状态下的 remote（`git clone --mirror` 一份到别的位置）。」
+> 「用 `git filter-repo --path .env --invert-paths --force` 从整个 git 历史里彻底删除 `.env` 这个文件（它不随 Git 分发，先 `pip install git-filter-repo`）。这是**红色操作**——它会**重写所有 commit 的 SHA**，团队所有人都必须重新 clone。执行前请**再次确认**：（1）我已经吊销了 key；（2）我已经在群里通知了所有协作者；（3）我已经备份了 clean 状态下的 remote（`git clone --mirror` 一份到别的位置）。执行后它会移除 origin remote——用 `git remote add origin <url>` 重加回来，才能推送。」
 
 ⚠️ `git filter-repo`（或旧的 `git filter-branch`、或 `BFG Repo-Cleaner`）**是本章唯一一个真正\"重写全部历史\"的操作**——它会**改变每一颗 commit 的 SHA**（因为 tree 变了，parent 变了，级联下去）。这不是黄色操作，是**红色操作**——第 12 章会详讲。**没有 100% 的必要不要做**。
 
@@ -635,7 +642,7 @@ time to do so with:
 
 **好消息**：那颗 commit **完全没事**。它的 SHA `e4f5g6h` 在 Git 的临别赠言里明明白白写着；就算你没记住，reflog 里也一定有它。
 
-**你只是切走的时候没给它挂一张标签**——它现在是一颗\"无主孤珠\"（第 3 章讲过）。**孤儿珠子的 30 天托管期从现在开始计时**。30 天内你随时可以救回来。
+**你只是切走的时候没给它挂一张名牌**——它现在是一颗\"无主孤珠\"（第 3 章讲过）。**孤儿珠子的 30 天托管期从现在开始计时**。30 天内你随时可以救回来。
 
 ### 恢复步骤
 
@@ -657,9 +664,9 @@ d7c8b9a HEAD@{4}: ...
 
 > 「用 `git show e4f5g6h --stat` 展示这颗 commit 的改动列表，让我确认这是我的修复。」
 
-**第三步**（AI 指令）：给它挂一张分支标签，让它\"接回项链\"。
+**第三步**（AI 指令）：给它挂一张分支名牌，让它\"接回项链\"。
 
-> 「用 `git branch rescue/ancient-bug-fix e4f5g6h` 把这颗孤儿珠子挂上一个分支标签。这颗珠子从此有名有姓，不会被 gc 掉了。」
+> 「用 `git branch rescue/ancient-bug-fix e4f5g6h` 把这颗孤儿珠子挂上一个分支名牌。这颗珠子从此有名有姓，不会被 gc 掉了。」
 
 **第四步**（决策点）：这颗修复要不要合到 main？
 
@@ -673,13 +680,13 @@ d7c8b9a HEAD@{4}: ...
 
 有些 Git 版本 / 配置下，切走时的\"leaving X commit behind\"警告可能不显眼、或者你压根没看。
 
-**这不影响救援**——**reflog 会记录一切**。你只要知道\"我曾在某个 detached 状态下 commit 过\"这一件事，reflog 就能找到那颗珠子。**reflog 不需要标签、不需要引用、不需要任何东西——它就是 Git 本地的行车记录仪**。
+**这不影响救援**——**reflog 会记录一切**。你只要知道\"我曾在某个 detached 状态下 commit 过\"这一件事，reflog 就能找到那颗珠子。**reflog 不需要名牌、不需要引用、不需要任何东西——它就是 Git 本地的行车记录仪**。
 
 ### 预防
 
-- **detached HEAD 上做任何提交前先挂标签**：`git switch -c experiment-<描述>` ——**这一步在\"我要试一下\"的开始就做**，一劳永逸。
+- **detached HEAD 上做任何提交前先挂名牌**：`git switch -c experiment-<描述>` ——**这一步在\"我要试一下\"的开始就做**，一劳永逸。
 - **看到\"leaving N commits behind\"警告时**——**别忙着按回车**。看清楚 N 是几、message 是什么。**Git 的这句警告是它已经能说的最人性化的挽留了**——它甚至把恢复命令都印给你了（`git branch <new-branch-name> <sha>`）。
-- **心理模型**：**detached HEAD 不是错误状态**（第 3 章讲过）——它是\"看一看试一试\"的正确姿势。**危险的从来不是 detached 状态本身，而是\"在 detached 里 commit + 切走时不挂标签\"这个组合**——本剧本就是这个组合的兑现。
+- **心理模型**：**detached HEAD 不是错误状态**（第 3 章讲过）——它是\"看一看试一试\"的正确姿势。**危险的从来不是 detached 状态本身，而是\"在 detached 里 commit + 切走时不挂名牌\"这个组合**——本剧本就是这个组合的兑现。
 
 ---
 
@@ -800,7 +807,7 @@ CI 应该已经跑起来了。同事的 IDE 里应该已经有 pull 提醒了。
 
 - 「事故现场诊断：跑 `git status`、`git log --oneline --all -20`、`git reflog --date=iso -30`、`git branch -av`。用中文向我总结：（1）我现在站在哪；（2）过去 30 分钟做过哪些改历史操作（reset / rebase / merge / branch delete / force push）；（3）我当前工作区有没有未提交改动。**不要执行任何有副作用的命令**。」
 - 「读 `git reflog --date=iso -50`，按时间倒序告诉我：过去这段时间在这个仓库里 HEAD 发生过哪些位置变化。特别标出：commit / checkout / reset / rebase / merge / branch delete 这几类的每一条——每条给出 before/after SHA、时间、动作类型。」
-- 「用 `git fsck --lost-found` 列出所有 unreachable 的对象（dangling commits / dangling blobs / dangling trees）。**只读、不改任何东西**。每个 dangling commit 用 `git show <sha> --stat` 简要展示 message + 改动文件。让我认领。」
+- 「用 `git fsck --dangling` 列出所有 unreachable 的对象（dangling commits / dangling blobs / dangling trees）。**只读、不改任何东西**——别顺手换成 `--lost-found`，那个会往 `.git/lost-found/` 里写文件。⚠️ `--dangling` 默认把 reflog 当可达根，还挂在 reflog 上的珠子它不列——那部分去读 reflog，或加 `--no-reflogs` 看全部孤儿。每个 dangling commit 用 `git show <sha> --stat` 简要展示 message + 改动文件。让我认领。」
 
 **🟡 误删分支救援**
 
@@ -809,7 +816,7 @@ CI 应该已经跑起来了。同事的 IDE 里应该已经有 pull 提醒了。
 **🟡 reset --hard 之后救援**
 
 - 「我刚 `git reset --hard` 之后发现丢东西了。（1）用 `git reflog -20` 找到 reset 之前的 HEAD 位置；（2）展示那颗 commit 的 message + 改动文件让我确认；（3）确认后 `git reset --hard <那个 SHA>` 恢复。如果我丢的是**从没 `add` 过的工作区改动**，诚实告诉我：**这类改动 Git 恢复不了**，建议我去看编辑器的 Local History 或系统级快照。」
-- 「我刚 `git reset --hard` 之后想找回一个我 `add` 过但没 commit 的文件 `<path>`。用 `git fsck --lost-found` 列出所有 dangling blobs；每个 blob 用 `git show <blob-sha> | head -20` 展示前 20 行让我认领。找到之后用 `git show <blob-sha> > <path>` 还原成文件。」
+- 「我刚 `git reset --hard` 之后想找回一个我 `add` 过但没 commit 的文件 `<path>`。用 `git fsck --dangling` 列出所有 dangling blobs；每个 blob 用 `git show <blob-sha> | head -20` 展示前 20 行让我认领。找到之后用 `git show <blob-sha> > <path>` 还原成文件。」
 
 **🟡 rebase 搞砸救援**
 
@@ -823,7 +830,7 @@ CI 应该已经跑起来了。同事的 IDE 里应该已经有 pull 提醒了。
 **🔴 敏感文件泄漏（这是红色，第一优先级不是 git）**
 
 - 「我误 commit + push 了 `.env`（或其他敏感文件），文件里有 API key / 私钥 / 密码。**执行任何 git 操作之前，先做完这三件事**：（1）**立刻登录服务商后台吊销这个凭证**；（2）**生成新凭证并更新到正确的位置**（不再进 git）；（3）**审计服务商日志看有没有在我吊销前被人使用**。做完这三步后再回来告诉我，我再帮你做 git 层的历史清理。**清理只是辅助——泄漏一旦发生，唯一有效的止损是让 key 失效**。」
-- 「（吊销完 API key 后）帮我用 `git filter-repo --path <文件路径> --invert-paths --force` 从整个历史里删除这个文件。**执行前再次确认**：（1）已吊销凭证；（2）已通知所有协作者接下来他们需要重新 clone；（3）已备份当前远端（`git clone --mirror` 到本地一份）。执行完之后 `git push --force`（这是极少数必须裸 force 的场景）。」
+- 「（吊销完 API key 后）帮我用 `git filter-repo --path <文件路径> --invert-paths --force` 从整个历史里删除这个文件。**先决条件**：`git filter-repo` 不随 Git 分发，先 `pip install git-filter-repo`。**执行前再次确认**：（1）已吊销凭证；（2）已通知所有协作者接下来他们需要重新 clone；（3）已备份当前远端（`git clone --mirror` 到本地一份）。**执行完注意**：它会移除 origin remote——先 `git remote add origin <url>` 重加回来，再 `git push --force`（这是极少数必须裸 force 的场景）。」
 
 **🟡 已推送的错误 merge / commit 撤销**
 
@@ -832,7 +839,7 @@ CI 应该已经跑起来了。同事的 IDE 里应该已经有 pull 提醒了。
 
 **🟢 detached HEAD 恢复**
 
-- 「我在 detached HEAD 上 commit 过一颗 commit（message 大致是 `<描述>`），然后切走了。用 `git reflog -20` 找到那颗 commit 的 SHA（reflog 里类型是 `commit:` 的行），`git show` 展示让我确认，然后 `git branch rescue/<描述> <sha>` 把它挂上标签。」
+- 「我在 detached HEAD 上 commit 过一颗 commit（message 大致是 `<描述>`），然后切走了。用 `git reflog -20` 找到那颗 commit 的 SHA（reflog 里类型是 `commit:` 的行），`git show` 展示让我确认，然后 `git branch rescue/<描述> <sha>` 把它挂上名牌。」
 
 **训练用指令（陪练模式）**
 
@@ -846,12 +853,12 @@ CI 应该已经跑起来了。同事的 IDE 里应该已经有 pull 提醒了。
 | 你说的话 | AI 大概率执行 | `.git/` 里的真实变化 |
 |---|---|---|
 | \"救回我刚 `-D` 掉的分支 X\" | `git branch X <sha-from-reflog>` | 新建文件 `.git/refs/heads/X`，41 字节。**没有任何提交对象被造出来**——它们本来就在 `.git/objects/` 里躺着。 |
-| \"从 fsck --lost-found 里救回那个未 commit 的文件\" | `git show <blob-sha> > <path>` | 读 `.git/objects/<sha 前 2 字符>/<剩余 38 字符>` 这个 blob 对象、把内容写回工作目录。**Git 内部状态零变化**，只有工作目录多了一个文件。 |
+| \"从 fsck --dangling 里救回那个未 commit 的文件\" | `git show <blob-sha> > <path>` | 读 `.git/objects/<sha 前 2 字符>/<剩余 38 字符>` 这个 blob 对象、把内容写回工作目录。**Git 内部状态零变化**，只有工作目录多了一个文件。 |
 | \"rebase 搞砸了，回到之前\" | `git reset --hard ORIG_HEAD` | 读 `.git/ORIG_HEAD`（一个 41 字节的文本文件，保存着 rebase 开始前的 HEAD SHA）；`.git/refs/heads/<current>` 挪回那个 SHA；工作目录和暂存区都重置到那个 SHA 对应的快照。rebase 产生的新 commit 对象**仍然留在 objects 里**（30 天托管期）。reflog 加一条 `reset: moving to ORIG_HEAD`。 |
 | \"force push 覆盖了共享分支，让小李恢复\" | 小李本地 `git push --force-with-lease origin <branch>` | 远端 `refs/heads/<branch>` 从你 rebase 后的新 SHA 挪回小李本地的旧 SHA。远端 objects 里你 rebase 造的新 commit **仍在**（远端 gc 前）。远端服务器的 reflog 记录：`<branch>: force-update from <你的 SHA> to <小李的 SHA>`。 |
 | \"revert 那颗 merge commit\" | `git revert -m 1 <sha>` | `.git/objects/` 里**新增一颗抵消 commit**——它的 tree 是\"main 合并前的状态\"、parent 是 merge commit（即当前 HEAD）、message 是 `Revert "Merge pull request #..."`。`.git/refs/heads/main` 前移 1 格。原来那颗 merge commit **原样保留在 log 里**——它和它的 revert 一起构成\"合过又撤了\"的完整证据。 |
 | \"救回 detached HEAD 上 commit 后切走的那颗珠子\" | `git branch rescue <sha-from-reflog>` | 新建文件 `.git/refs/heads/rescue`，41 字节。那颗孤儿珠子从\"unreachable\"变成\"reachable\"，脱离 30 天倒计时。 |
-| \"用 filter-repo 清除历史里的 .env\" | `git filter-repo --path .env --invert-paths --force` | **`.git/objects/` 里全部 commit 对象被重新造一遍**（tree 里删掉了 .env、parent 相应变化、SHA 全变）；所有分支 ref 挪到新 SHA；旧的 commit 对象**理论上都会留在 objects 里**但 filter-repo 默认会重新打包 + 清理引用。**这是本章唯一会\"真的改动几乎所有 SHA\"的操作，红色**。 |
+| \"用 filter-repo 清除历史里的 .env\" | `git filter-repo --path .env --invert-paths --force` | **`.git/objects/` 里全部 commit 对象被重新造一遍**（tree 里删掉了 .env、parent 相应变化、SHA 全变）；所有分支 ref 挪到新 SHA；旧的 commit 对象**别指望还在**——filter-repo 默认以清 reflog + 立即剪枝收尾，旧历史只活在 mirror 备份里。**这是本章唯一会\"真的改动几乎所有 SHA\"的操作，红色**。 |
 
 看懂这张表你会最终确认本章的核心：**除了 filter-repo 那一行（红色）之外，所有的\"事故救援\"物理上都归结为\"挪一挪 refs 指针 + 读一读 reflog\"——本身零副作用、零风险**。**在你救援时手抖的那一秒，你实际上做的物理动作，是 41 字节文本文件里 40 个字符的替换**。这就是 Git 事故恢复哲学的物理底：**它极少扔东西，所以你极少能真的把事情搞砸**。
 
@@ -865,10 +872,10 @@ git status                          # 看工作区状态
 git log --oneline --all -30         # 看当前所有分支上的项链
 git reflog --date=iso -50           # 看最近 50 次 HEAD 移动
 git branch -av                      # 看所有本地和远程分支的当前位置
-git fsck --lost-found               # 列出所有 unreachable 对象（孤儿珠子）
+git fsck --dangling                  # 列出所有 unreachable 对象（孤儿珠子）
 
 分支救援
-git branch <name> <sha>             # 把孤儿珠子挂回一张标签
+git branch <name> <sha>             # 把孤儿珠子挂回一张名牌
 git branch rescue/<描述> <sha>      # 给孤儿珠子起个描述性名字
 
 reset 之后救援
@@ -910,7 +917,7 @@ Git 事故恢复哲学
   ├─ Git 极少扔东西
   │   ├─ 造过的对象 → objects/ 里躺着
   │   ├─ 挪过的 HEAD → reflog 里记着
-  │   └─ 默认 30 天托管期
+  │   └─ 托管期两档：commit 级约 30 天 / add-only blob 约 2 周
   │
   ├─ 唯一真丢：从没被 git 记录过的东西
   │   └─ reset --hard 之前的未 add 改动
@@ -934,7 +941,7 @@ Git 事故恢复哲学
 
 8 大事故剧本 · 一句话记忆
   1. 误删分支             → reflog + git branch <name> <sha>
-  2. reset --hard 抹工作区 → fsck --lost-found（未 add 的诚实认输）
+  2. reset --hard 抹工作区 → fsck --dangling（未 add 的诚实认输）
   3. rebase 弄丢提交       → ORIG_HEAD / reflog / cherry-pick
   4. force push 覆盖远端   → 从同事 clone 恢复（叫团队）
   5. 误提交敏感文件        → 先吊销凭证，再谈 git（红色事故）
@@ -970,8 +977,8 @@ Git 事故恢复哲学
 >
 > 找一个你自己的**沙盒**仓库（**不要**用生产仓库！这些练习会故意搞坏），按顺序执行下面这几组\"事故模拟\"。**每一组做完对着本章的救援步骤把它救回来**——救援时**必须**先跑 `git reflog` 打印现场，再执行任何有副作用的命令。
 >
-> - **模拟事故 1 · 误删分支**：「造一个仓库，main 上 5 颗 commit。开分支 experiment，上面再造 3 颗 commit（**不合并回 main**）。切回 main，`git branch -D experiment`。**现在把 experiment 分支救回来**——用 reflog、`fsck --lost-found`、`git branch <name> <sha>` 三步。展示救回后的 log 和救援前的 log 完全一致。」
-> - **模拟事故 2 · reset --hard 混合场景**：「造一个仓库，先造几颗 commit，然后：（a）在工作区改文件 A（**不 add**）；（b）改文件 B 并 `git add`（**不 commit**）；（c）改文件 C 并 `git add && git commit`（一颗新 commit）。现在跑 `git reset --hard HEAD~1`。**分别救回 A、B、C**——你会发现：C 用 reflog 秒救；B 用 `fsck --lost-found` + `git show <blob> > B` 能救；**A 救不回**（因为 Git 从没见过它）。把这个\"实操区分\"的结果记住——它是本章最重要的直觉。」
+> - **模拟事故 1 · 误删分支**：「造一个仓库，main 上 5 颗 commit。开分支 experiment，上面再造 3 颗 commit（**不合并回 main**）。切回 main，`git branch -D experiment`。**现在把 experiment 分支救回来**——用 reflog、`fsck --dangling`、`git branch <name> <sha>` 三步。展示救回后的 log 和救援前的 log 完全一致。」
+> - **模拟事故 2 · reset --hard 混合场景**：「造一个仓库，先造几颗 commit，然后：（a）在工作区改文件 A（**不 add**）；（b）改文件 B 并 `git add`（**不 commit**）；（c）改文件 C 并 `git add && git commit`（一颗新 commit）。现在跑 `git reset --hard HEAD~1`。**分别救回 A、B、C**——你会发现：C 用 reflog 秒救；B 用 `fsck --dangling` + `git show <blob> > B` 能救；**A 救不回**（因为 Git 从没见过它）。把这个\"实操区分\"的结果记住——它是本章最重要的直觉。」
 > - **模拟事故 3 · rebase 走岔**：「造一个仓库，main 上 3 颗 commit。开 feature 分支，上面 6 颗 commit。故意让其中第 3 颗和 main 上一颗改同一行（制造冲突）。`git rebase main`。在第 3 颗冲突时**故意选错边**（保留 main 那侧、丢弃你自己那侧）、continue 到底。跑 `git log --oneline main..HEAD`——你会发现 log 变了但代码丢了一颗的改动。**现在两种方式各救一次**：（a）`git reset --hard ORIG_HEAD` 整个回退；（b）`git cherry-pick <lost-sha>` 只补回丢的那颗。对比两种方式最终 log 和代码状态的差异。」
 > - **模拟事故 4 · 敏感文件泄漏演习**（**用测试仓库、用假 key**！）：「造一个仓库，写一个假的 `.env` 文件（内容随便写一个\"看起来像 API key 但绝对不是真的\"的字符串）。`git add .env && git commit -m "feat: 接入 API" && git push`（推到你自己的测试仓库）。**现在按本章剧本 5 的步骤演一遍完整应急**：（1）（假装）吊销那个 key + 生成新的 + 更新到 .env.local；（2）加 .gitignore；（3）`git rm --cached .env`；（4）`git commit --amend --no-edit`；（5）`git push --force-with-lease`（因为是测试仓库、只有你一个人，允许 force）。感受一下\"先吊销后清理\"这个顺序在肌肉记忆里的份量。」
 > - **模拟事故 5 · detached HEAD 上的孤儿珠子**：「造一个仓库，main 上 4 颗 commit。`git checkout HEAD~2`——进入 detached 状态。改一个文件，`git commit -m "detached-fix"`——造一颗孤儿珠子。`git switch main`——**注意看 Git 那句\"you are leaving 1 commit behind\"的警告**。然后跑 `git log --oneline --all`——找不到那颗 detached-fix。**现在用 reflog 救回来**：找到 SHA、`git branch rescue/detached-fix <sha>`。切到 rescue 分支确认那颗珠子活着。」

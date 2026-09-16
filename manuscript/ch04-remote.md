@@ -45,10 +45,10 @@
 
 - **别名**：`origin` 是你随手起的名字，可以叫 `foo`、`bar`、`grandma`，Git 不关心。
 - **另一个仓库**：Remote 指向的是另一份完整的 `.git/`——它可以在 GitHub 上，也可以在同事笔记本上，也可以在你自己电脑的另一个目录里。
-- **本地缓存**：`origin/main` 这个东西**住在你本地**，不是住在服务器上。它是你自己给"上次听说的远端状态"贴的标签。
+- **本地缓存**：`origin/main` 这个东西**住在你本地**，不是住在服务器上。它是你自己给"上次听说的远端状态"贴的名牌。
 - **一份**：注意是"一份"——服务器上的 main 分支现在是什么状态，你的本地缓存**不会自动更新**。它是被冻结的记忆，直到你显式执行 `git fetch` 让它刷新。
 
-一句话：**远程仓库是另一条项链的拷贝（镜子里的项链）。`origin/main` 是你本地给"镜子里那条项链最新已知位置"贴的标签。**
+一句话：**远程仓库是另一条项链的拷贝（镜子里的项链）。`origin/main` 是你本地给"镜子里那条项链最新已知位置"贴的名牌。**
 
 ### 打开黑盒：`.git/config` 和 `refs/remotes/` 里到底有什么
 
@@ -93,7 +93,7 @@
 
 用第 3 章的比喻扩展一下：
 
-> **每条项链上都可以挂两种标签——本地标签（refs/heads/）是你自己贴的，远程标签（refs/remotes/origin/）是"我上次从镜子里看到、抄下来贴在墙上的"。你本地是有那条镜子里的项链的完整拷贝的（objects 里全都有），但镜子里的项链现在是什么样，你只能靠 fetch 才能"再看一眼"。**
+> **每条项链上都可以挂两种名牌——本地名牌（refs/heads/）是你自己贴的，远程名牌（refs/remotes/origin/）是"我上次从镜子里看到、抄下来贴在墙上的"。你本地是有那条镜子里的项链的完整拷贝的（objects 里全都有），但镜子里的项链现在是什么样，你只能靠 fetch 才能"再看一眼"。**
 
 ### 关键推论：**origin/main ≠ 服务器上的 main**
 
@@ -113,7 +113,7 @@
 
 ## 4.3 三兄弟的真实语义：fetch、pull、push
 
-Git 里**只有 5 个命令会碰网络**：`clone`（第 1 章讲过）、`fetch`、`pull`、`push`、`remote update`（`fetch` 的多远程版本）。日常里你天天用的就三个：fetch、pull、push。
+日常碰网络的只有 **fetch 家族与 push**——`clone` / `fetch` / `pull` / `push` / `ls-remote` / `remote show` / `remote update` 都是它的变体，其余命令全部只读本地。日常里你天天用的就三个：fetch、pull、push。
 
 它们各自到底干什么？
 
@@ -154,11 +154,13 @@ Git 里**只有 5 个命令会碰网络**：`clone`（第 1 章讲过）、`fetc
 
 那颗神秘 merge commit 是 `pull` 里第二步 `merge` 造的——因为**你的本地 main 和远端 main 已经分叉了**（你有 4e5f6a7，远端有 a1b2c3d，两者都在共同祖先之后各走各路），Git 需要一颗 merge commit 把两条路合在一起，才能"pull 完成"。
 
-**这颗 merge commit 通常没人真的想要**——它把项链弄得歪歪扭扭，log 里全是"Merge branch 'main' of ..."的噪音。真正想要的通常是"把我的改动放在远端最新之上，形成一条直线"——那应该用 rebase 而不是 merge。所以现代 Git 建议默认配置：
+**这颗 merge commit 通常没人真的想要**——它把项链弄得歪歪扭扭，log 里全是"Merge branch 'main' of ..."的噪音。真正想要的通常是"把我的改动放在远端最新之上，形成一条直线"——那应该用 rebase 而不是 merge。所以 Git 2.27 起干脆不再替你默默选：pull 遇到分叉会停下来**逼你显式选择**（merge / rebase / ff-only 三选一），提示里把三个选项并列摆出来，但**默认仍是 merge**。个人分支想要直线历史，可以配置：
 
 ```
-git config --global pull.rebase true
+git config --global pull.rebase true    # 个人分支：拉下来就 rebase 成直线
 ```
+
+共享分支则更稳妥的是 `pull.ff only`（只允许快进，分叉就停，绝不自动造 merge commit）：
 
 或者更明确的做法——**别用 pull，分成两步**：
 
@@ -172,7 +174,7 @@ git rebase origin/main  # 把我的改动移到远端最新之上（如果没冲
 
 **AI 时代的补充**：让 AI 帮你封装这个"决策 + 执行"的流程比背命令更实在——「先 fetch，然后告诉我我这边和 origin/main 分叉了没、各有多少 commit、有没有冲突风险，我看完再决定 rebase 还是 merge」。这段话你说给任何 AI 编码助手听都能执行，比你敲一个 pull 之后被动接受 Git 的默认选择要好得多。
 
-### push：把你的本地珠子和标签同步到镜子那边
+### push：把你的本地珠子和名牌同步到镜子那边
 
 `git push origin main` 做的事：
 
@@ -218,7 +220,7 @@ Git 是怎么知道你要 pull/push 的是哪个远端的哪个分支的？
 - **clone 的时候**：Git 会自动为默认分支建 upstream（本地 main → origin/main）。
 - **首次 push 新分支时**：你敲 `git push -u origin feature-x`，那个 `-u` 就是 `--set-upstream`，一次性建好绑定。之后你就可以直接 `git push` 了。
 
-第二个场景里如果你忘了 `-u`：`git push origin feature-x` 也能 push 成功一次，但没有绑定；下次你敲 `git push` Git 会问你"你要 push 到哪里？"——因为没有 upstream 它不敢猜。
+第二个场景里如果你忘了 `-u`：`git push origin feature-x` 也能 push 成功一次，但没有绑定；下次你敲 `git push`，Git 会**直接报错**（`fatal: The current branch has no upstream branch`），并在提示里告诉你可以在 push 时加 `--set-upstream` 补上绑定——它从不交互式地问你"推到哪里"，而是把选择连同报错一起交回你手上。
 
 `git status` 里那句 `Your branch is up to date with 'origin/main'` 就是在读这条 upstream 绑定：**你的本地 main 追踪的是 origin/main，两者当前指向同一颗珠子，所以 "up to date"。** 注意这句话说的是"和本地缓存 origin/main 一致"，**不是"和远端服务器一致"**——如果你没最近 fetch，远端服务器可能已经跑到前面去了，你的 status 只是不知道而已。
 
@@ -390,7 +392,7 @@ git push origin main --force-with-lease   # 让你的 fork main 也完全等于�
 **训练用指令（陪练模式）**
 
 - 「假装我从没搞清楚 origin/main 和 main 的区别。问我 5 个诊断题：'当我在本地 commit 之后，origin/main 有没有变''fetch 之后我的 main 分支会不会前移''status 说 up to date 是相对什么在说''pull 里那个我没造过的 merge commit 是谁造的''push 被拒是 Git 在保护什么'——一次一个，看我答得对不对，讲评。」
-- 「用'镜子里的项链'和'贴在墙上的标签'比喻，向一个刚从 SVN 迁过来的人解释：为什么 Git 里的\"远程分支\"实际住在本地。200 字。」
+- 「用'镜子里的项链'和'贴在墙上的名牌'比喻，向一个刚从 SVN 迁过来的人解释：为什么 Git 里的\"远程分支\"实际住在本地。200 字。」
 - 「给我 8 道'我该 fetch 还是 pull 还是 push 还是 force push'的场景判断题。场景包括：'我刚 commit 完想同步'\"我刚被 push 拒了\"\"我要发 PR 前跟上主干\"\"我误推了要撤回\"等等。」
 
 ---
@@ -401,7 +403,7 @@ git push origin main --force-with-lease   # 让你的 fork main 也完全等于�
 |---|---|---|
 | \"看看远程有什么\" | `git remote -v` | **零变化**（读 `.git/config`） |
 | \"fetch 一下\" | `git fetch origin` | 可能新增 objects/（新对象）；更新 `refs/remotes/origin/*` 里的一堆文件；**你本地分支和 HEAD 完全不动** |
-| \"pull 一下\" | `git pull` = fetch + merge/rebase | fetch 那步同上；merge/rebase 那步造一颗或多颗新 commit，把当前本地分支的标签移过去 |
+| \"pull 一下\" | `git pull` = fetch + merge/rebase | fetch 那步同上；merge/rebase 那步造一颗或多颗新 commit，把当前本地分支的名牌移过去 |
 | \"push 到远端\" | `git push origin main` | 本地新对象打包传给远端；远端 `refs/heads/main` 前移；**你本地** `refs/remotes/origin/main` **也前移**（本地缓存自动更新到你刚推的位置） |
 | \"加个远程叫 upstream\" | `git remote add upstream <url>` | `.git/config` 里新增一段 `[remote "upstream"]`；`refs/remotes/` 下**暂时不新增东西**（要 fetch 才会） |
 | \"删掉 origin\" | `git remote remove origin` | `.git/config` 里那段配置消失；`refs/remotes/origin/` 目录被删除；**objects 里对应的 commit 对象一颗不少地留着** |
@@ -426,6 +428,7 @@ git fetch --prune              # 顺便把远端已删除的分支从本地缓�
 
 git pull                       # = fetch + merge（或 rebase，看配置）
 git pull --rebase              # 强制用 rebase
+git pull --ff-only              # 只允许快进，分叉就停（共享分支建议）
 
 git push                       # 推到 upstream 对应的远端分支
 git push -u origin <branch>    # 首次 push 并建立 upstream 追踪
@@ -455,7 +458,7 @@ git log origin/main..main      # 本地有、远端没有的 commit
   ├─ 语义上：\"我上次听说远端那个分支指向哪颗珠子\"
   └─ 更新时机：只有 fetch / pull / push 会碰它
 
-只有 5 个命令会碰网络：clone / fetch / pull / push / remote update
+碰网络的只有 fetch 家族与 push：clone / fetch / pull / push / ls-remote / remote show / remote update
   │
   ├─ fetch  只更新缓存，本地分支/HEAD/工作区全不动（最安全）
   ├─ pull   = fetch + merge/rebase（一个宏，把决策塞进了默认）

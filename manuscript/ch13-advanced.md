@@ -49,7 +49,7 @@ stash@{1}: WIP on main: e4f5g6h 加日志
 stash@{2}: On main: 临时改一下配置
 ```
 
-**每一个 `stash@{N}` 其实是一颗（有时是两颗）匿名的 commit 珠子**——是的，本质上还是珠子，只不过它的 parent 是当时的 HEAD，标签叫 `stash`。没有分支指向它，但 `refs/stash` 这条引用链保管着它。所以第 5 章讲的\"珠子不可变、reflog 保底\"那套原理，在 stash 上完全成立。
+**每一个 `stash@{N}` 其实是一颗（有时是两颗）匿名的 commit 珠子**——是的，本质上还是珠子，只不过它的 parent 是当时的 HEAD，名牌叫 `stash`。没有分支指向它，但 `refs/stash` 这条引用链保管着它。所以第 5 章讲的\"珠子不可变、reflog 保底\"那套原理，在 stash 上完全成立。
 
 ### 三个动作，语义完全不同
 
@@ -145,9 +145,9 @@ cherry-pick Y 之后：
 `git rebase main` 在 feature 分支上做的事，用 cherry-pick 语言讲，就是：
 
 1. 记下 feature 从共同祖先到末端每一颗珠子的改动。
-2. 把 feature 标签暂时挪到 main 的末端。
+2. 把 feature 名牌暂时挪到 main 的末端。
 3. **依次 cherry-pick 每一颗珠子**——一颗、一颗、一颗地重放。
-4. feature 标签停在最后一颗新珠子上。
+4. feature 名牌停在最后一颗新珠子上。
 
 这不是比喻，是**字面上的物理事实**。Git 内部实现里，`rebase` 就是循环调用 cherry-pick 逻辑。**所以 rebase 遇到冲突的行为——一颗一颗停、`--continue` 一颗一颗过——才和 cherry-pick 遇到冲突时长得一模一样**（`git cherry-pick --continue` / `--abort` / `--skip`，接口都对得上）。
 
@@ -248,7 +248,7 @@ git bisect start HEAD v2.3.0
 git bisect run pytest tests/test_login.py
 ```
 
-Git 会自动 checkout 每个中点、跑测试、根据 exit code 判断（0 = good、非 0 = bad）、缩小范围、继续，**你去喝杯咖啡回来看结果**。
+Git 会自动 checkout 每个中点、跑测试、根据 exit code 判断、缩小范围、继续，**你去喝杯咖啡回来看结果**。exit code 的语义要记准：**0 = good；1–127（除 125）= bad；125 = 这颗测不了、跳过；其余退出码（≥128 等）直接中止整个 bisect**。所以 bisect run 的测试脚本里，**用 `exit 125` 表示"这颗没法测"**（编译不过、环境起不来就返回它）；手动一轮一轮跑时，等价命令是 `git bisect skip`。
 
 **这也是 AI Agent 特别擅长的场景**：告诉 AI\"这段项链里某颗引入了 bug，症状是 X\"，AI 会自动跑 bisect、自动写测试脚本判断好坏、自动 checkout 每一轮、最终给你一个\"就是这颗\"的答案。**bisect + AI 是绿色区里最漂亮的一对组合**：AI 干重复劳动，你判断最终诊断结果。
 
@@ -537,7 +537,7 @@ git clone --filter=blob:none <repo>
 **你需要手动 gc 的时刻**：
 
 - **仓库明显变慢、变大**：跑 `git gc --aggressive` 做一次深度重打包（`--aggressive` 会用更激进的 delta 算法，慢但压缩率更高）。
-- **大量历史被重写之后**（比如批量 rebase、filter-branch、BFG）——旧的对象成了 unreachable，磁盘占用不减。跑 `git gc --prune=now` 立即清理（**注意 `--prune=now` 会跳过 reflog 保留期，慎用**）。
+- **大量历史被重写之后**（比如批量 rebase、filter-branch、BFG）——旧的对象成了 unreachable，磁盘占用不减。跑 `git gc --prune=now` 立即清理（**注意：它只删得掉已经没有任何引用（含 reflog）指向的对象**。想连 reflog 一起清，要用"reflog expire + gc"两步组合，见下文）。
 - **服务端仓库（bare repo）** 通常需要定期跑 gc——bare repo 上没有工作目录操作触发 auto gc，需要 cron。
 
 ### 一个常被忽视的操作：`git maintenance`
@@ -578,7 +578,7 @@ Git 会通过 cron / systemd timer 定期跑：gc、pack-refs、commit-graph 优
 ### 呼应第 3 章、第 10 章
 
 第 3 章从**祛魅**角度讲了 detached HEAD：不是错误状态，是 HEAD 直接按住一颗珠子的姿势。
-第 10 章从**恢复**角度讲了它：\"在 detached 状态里 commit 了没挂标签，用 reflog 找回。\"
+第 10 章从**恢复**角度讲了它：\"在 detached 状态里 commit 了没挂名牌，用 reflog 找回。\"
 
 这里从**正常工作状态**的第三个视角讲一下——**什么时候你会（也应该）正常处在 detached HEAD 里？**
 
@@ -598,9 +598,9 @@ git checkout <某个 SHA>
 **场景三：rebase 内部状态。**
 `git rebase` 执行过程中，Git 会把 HEAD 挪到重放的每一颗新珠子上——那些珠子还没被任何分支指向，本质上就是 detached。**你通常看不到这个中间态**（除非 rebase 停在冲突上让你处理），但它一直在发生。
 
-### 什么时候 detached HEAD 变成\"该挂标签了\"
+### 什么时候 detached HEAD 变成\"该挂名牌了\"
 
-**唯一的判断规则**：**如果你在 detached HEAD 上做了任何 commit，先挂标签再切走**。
+**唯一的判断规则**：**如果你在 detached HEAD 上做了任何 commit，先挂名牌再切走**。
 
 Git 会在你切走的那一刻给出警告：
 ```
@@ -622,7 +622,7 @@ If you want to keep it by creating a new branch, this is a good time to do so wi
 
 **🟡 收尾类**
 
-- 「我在 detached HEAD 上做了一些改动想保留。用 `git switch -c rescue/2026-11-XX` 在当前位置挂一张分支标签保存下来。执行前展示当前 HEAD 的 SHA 和最近几颗 commit，让我确认这就是想保留的状态。」
+- 「我在 detached HEAD 上做了一些改动想保留。用 `git switch -c rescue/2026-11-XX` 在当前位置挂一张分支名牌保存下来。执行前展示当前 HEAD 的 SHA 和最近几颗 commit，让我确认这就是想保留的状态。」
 - 「我在 detached HEAD 上看完了历史版本，什么都没提交。用 `git switch main` 回到 main 分支。执行前确认工作目录是干净的——如果不是，停下来提醒我。」
 
 ---
@@ -706,11 +706,11 @@ sparse-checkout─ 只展开工作目录一部分
 partial clone  ─ 只下载对象一部分：两者常一起用，monorepo 标配
 gc / maintenance ─ 让 Git 自己维护自己；手动 gc 在\"重写大量历史后\"或\"仓库明显变慢\"
 detached HEAD  ─ 不是错误，是姿势：看历史、bisect、rebase 内部都在用；
-                 在里面 commit 了就挂标签，别切走。
+                 在里面 commit 了就挂名牌，别切走。
 
 一句话总括：
   这些概念都建立在前五张地图上，没有一个引入新原理——
-  它们只是\"造珠子 + 挪标签 + 挪指针\"的新组合。
+  它们只是\"造珠子 + 挪名牌 + 挪指针\"的新组合。
 ```
 
 ---

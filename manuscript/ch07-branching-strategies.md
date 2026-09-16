@@ -390,7 +390,7 @@ agent/<agent-name>/<desc> ← AI agent 生成的分支（可选，用于差异�
 | spike | 到实验结束就删 | 2 周 |
 | rescue | 抢救完立刻合并或删除 | 3 天 |
 
-**超过硬上限的分支**：CI 每周扫描一次，自动 comment 提醒作者。三次不响应，自动关闭并归档 tag。
+**超过硬上限的分支**：CI 每周扫描一次，自动 comment 提醒作者。三次不响应，自动关闭对应 PR 并删除远程分支（发布节点已经钉在 tag 上，分支不必留）。
 
 ### main 分支保护规则（GitHub/GitLab 都能配）
 
@@ -398,7 +398,7 @@ agent/<agent-name>/<desc> ← AI agent 生成的分支（可选，用于差异�
 - ✅ 至少 1 位 reviewer approval。
 - ✅ CI 必须全绿（单元测试、集成测试、lint、类型检查）。
 - ✅ PR 必须包含描述（模板里的 checklist 至少勾选前三项）。
-- ✅ 合并方式：**Squash and merge**（保持 main 历史线性可读），或 **Rebase and merge**（保留每个 commit）。**禁用普通 merge**（避免不必要的 merge commit）。
+- ✅ 合并方式：**Squash and merge**（保持 main 历史线性可读），或 **Rebase and merge**（保留每个 commit）。**禁用普通 merge**（避免不必要的 merge commit）。注意这套规则只适用本节的 GitHub Flow 模板——GitFlow 恰好相反，hotfix/release 合回主干要的就是 `--no-ff` 那颗 merge commit（见本章末命令侧栏）。另外把取舍说破：**选 squash 就是放弃 commit 级粒度——bisect 与单点回滚能力同时下降，两者不可兼得**。
 - ✅ 禁止 force push 到 main。
 - ✅ 合并后自动删除源分支（保持分支列表清爽）。
 
@@ -503,7 +503,7 @@ agent/<agent-name>/<desc> ← AI agent 生成的分支（可选，用于差异�
 ```
 # 分支保护相关（这些主要在托管平台 UI 或 API 上做，不是 git 命令）
 gh repo edit --enable-auto-merge                      # 开启自动合并（GitHub CLI）
-gh api repos/:owner/:repo/branches/main/protection    # 查看分支保护配置
+gh api repos/{owner}/{repo}/branches/main/protection  # 查看分支保护配置（需管理员权限）
 
 # 常用的策略辅助命令
 git log --oneline --graph --all --since=\"3 months ago\"    # 观察团队实际的分支/合并形态

