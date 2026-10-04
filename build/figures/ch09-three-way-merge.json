@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "三方合并：Git 怎么看到冲突",
+    "subtitle": "Ch09 · 你这一侧 vs 对面这一侧，从共同祖先 B 之后两路分叉",
+    "output": "ch09-three-way-merge.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "base",
+      "type": "database",
+      "label": "共同祖先 B",
+      "sublabel": "export async function fetchUser（原版）",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        220,
+        72
+      ],
+      "tag": "BASE"
+    },
+    {
+      "id": "ours",
+      "type": "external",
+      "label": "你这一侧 (HEAD)",
+      "sublabel": "加了 options 参数",
+      "pos": [
+        34,
+        144
+      ],
+      "size": [
+        220,
+        72
+      ],
+      "tag": "OURS"
+    },
+    {
+      "id": "theirs",
+      "type": "external",
+      "label": "对面这一侧",
+      "sublabel": "把 id 改成 number 类型",
+      "pos": [
+        294,
+        144
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "FEATURE/USER-REFACTOR"
+    },
+    {
+      "id": "git",
+      "type": "security",
+      "label": "Git 三方合并算法",
+      "sublabel": "两边都改同一行 → 不知最终该长什么样",
+      "pos": [
+        34,
+        254
+      ],
+      "size": [
+        220,
+        72
+      ],
+      "tag": "ALGORITHM"
+    },
+    {
+      "id": "marker_head",
+      "type": "frontend",
+      "label": "<<<<<<< HEAD",
+      "sublabel": "开始标记",
+      "pos": [
+        34,
+        364
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "marker_mid",
+      "type": "frontend",
+      "label": "=======",
+      "sublabel": "中间分隔",
+      "pos": [
+        34,
+        474
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "marker_end",
+      "type": "frontend",
+      "label": ">>>>>>> feature/user-refactor",
+      "sublabel": ">>>>>>> feature/user-refactor",
+      "pos": [
+        34,
+        584
+      ],
+      "size": [
+        220,
+        72
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "冲突标记块",
+      "wraps": [
+        "marker_head",
+        "marker_mid",
+        "marker_end"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "base-ours",
+      "from": "base",
+      "to": "ours",
+      "label": "你从 B 后继续",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        144.0,
+        125.0
+      ]
+    },
+    {
+      "id": "base-theirs",
+      "from": "base",
+      "to": "theirs",
+      "label": "对面从 B 后继续",
+      "variant": "default"
+    },
+    {
+      "id": "ours-git",
+      "from": "ours",
+      "to": "git",
+      "label": "你的改动",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        144.0,
+        235.0
+      ]
+    },
+    {
+      "id": "theirs-git",
+      "from": "theirs",
+      "to": "git",
+      "label": "对面的改动",
+      "variant": "emphasis"
+    },
+    {
+      "id": "git-marker_head",
+      "from": "git",
+      "to": "marker_head",
+      "label": "机械合并失败",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        144.0,
+        345.0
+      ]
+    },
+    {
+      "id": "marker_head-mid",
+      "from": "marker_head",
+      "to": "marker_mid",
+      "label": "你这一侧代码块",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        144.0,
+        455.0
+      ]
+    },
+    {
+      "id": "marker_mid-end",
+      "from": "marker_mid",
+      "to": "marker_end",
+      "label": "对面这一侧代码块",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        144.0,
+        565.0
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "三方合并的本质",
+      "items": [
+        "Git 拿三个版本：base、ours、theirs",
+        "逐行比较：未动=base；只一边动=那一边；两边都改同一行=冲突",
+        "机械合并失败时，Git 在工作目录写入 <<<<<<< ======= >>>>>>> 标记"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "冲突≠错误：是你的语义需要仲裁",
+      "items": [
+        "Git 不知道函数签名 vs 调用点的语义关系",
+        "你的工作：要么选一边、要么重写、要么调用点同步改",
+        "git add 表示「我看完了，这次冲突已解」"
+      ]
+    }
+  ]
+}

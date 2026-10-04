@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "合并前：两条分支分叉",
+    "subtitle": "Ch05 · main 与 feature 在 A 之后并行",
+    "output": "ch05-merge-before-new.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "root",
+      "type": "external",
+      "label": "…",
+      "sublabel": "共同祖先之前",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "A",
+      "type": "database",
+      "label": "A",
+      "sublabel": "分叉点",
+      "pos": [
+        229,
+        34
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "B",
+      "type": "database",
+      "label": "B",
+      "sublabel": "main",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "C",
+      "type": "database",
+      "label": "C",
+      "sublabel": "main 继续",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "D",
+      "type": "database",
+      "label": "D",
+      "sublabel": "feature",
+      "pos": [
+        229,
+        152
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "E",
+      "type": "database",
+      "label": "E",
+      "sublabel": "feature 推进",
+      "pos": [
+        229,
+        270
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "main",
+      "type": "backend",
+      "label": "main",
+      "sublabel": "指 C",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "feature",
+      "type": "frontend",
+      "label": "feature",
+      "sublabel": "指 E",
+      "pos": [
+        229,
+        388
+      ],
+      "size": [
+        130,
+        72
+      ],
+      "tag": ""
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "分叉区间：A 之后并行",
+      "wraps": [
+        "B",
+        "C",
+        "D",
+        "E"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "root-A",
+      "from": "root",
+      "to": "A",
+      "label": "历史延续",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "A-B",
+      "from": "A",
+      "to": "B",
+      "label": "main",
+      "variant": "default"
+    },
+    {
+      "id": "B-C",
+      "from": "B",
+      "to": "C",
+      "label": "继续",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "A-D",
+      "from": "A",
+      "to": "D",
+      "label": "feature",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "D-E",
+      "from": "D",
+      "to": "E",
+      "label": "继续",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "main-C",
+      "from": "main",
+      "to": "C",
+      "label": "ref: main",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "feature-E",
+      "from": "feature",
+      "to": "E",
+      "label": "ref: feature",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "两条项链从 A 分叉",
+      "items": [
+        "A 是最近共同祖先（LCA）",
+        "main 项链：… → A → B → C",
+        "feature 项链：… → A → D → E",
+        "两条项链都从 A 出发，独立推进"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "fast-forward 合并后",
+      "items": [
+        "C 在 E 的祖先链上 → 指针快进到 E",
+        "merge 后 main 指向 E，单条项链",
+        "无 merge commit 产生"
+      ]
+    }
+  ]
+}

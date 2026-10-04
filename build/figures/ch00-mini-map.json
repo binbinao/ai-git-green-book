@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "本章小地图：从 cargo cult 到 5 张概念地图",
+    "subtitle": "Ch00 · 你现在在哪 + 接下来去哪",
+    "output": "ch00-mini-map.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "diagnosis",
+      "type": "security",
+      "label": "Cargo-Cult Git",
+      "sublabel": "仪式正确，因果不明",
+      "pos": [100, 30],
+      "size": [180, 60],
+      "tag": "起点"
+    },
+    {
+      "id": "root",
+      "type": "database",
+      "label": "病根",
+      "sublabel": "概念模型缺失",
+      "pos": [100, 140],
+      "size": [180, 50],
+      "tag": "诊断"
+    },
+    {
+      "id": "treatment",
+      "type": "backend",
+      "label": "5 张概念地图",
+      "sublabel": "仓库/分支/提交/远程/历史",
+      "pos": [100, 240],
+      "size": [180, 60],
+      "tag": "处方"
+    },
+    {
+      "id": "ai",
+      "type": "frontend",
+      "label": "AI 新分工",
+      "sublabel": "你出意图，AI 出语法",
+      "pos": [100, 350],
+      "size": [180, 60],
+      "tag": "工具"
+    },
+    {
+      "id": "vocab",
+      "type": "cloud",
+      "label": "概念词汇表 = API",
+      "sublabel": "前提：你得读得懂 AI 的报告",
+      "pos": [100, 460],
+      "size": [200, 60],
+      "tag": "前提"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Ch00 五个台阶（你站在第一个）",
+      "wraps": ["diagnosis", "root", "treatment", "ai", "vocab"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "diag-root",
+      "from": "diagnosis",
+      "to": "root",
+      "label": "诊断",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "root-treat",
+      "from": "root",
+      "to": "treatment",
+      "label": "开方",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "treat-ai",
+      "from": "treatment",
+      "to": "ai",
+      "label": "用 AI 学",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "ai-vocab",
+      "from": "ai",
+      "to": "vocab",
+      "label": "前提",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "你现在站在哪",
+      "items": [
+        "第一台（Cargo-Cult Git）：你用命令但不知因果",
+        "走完 5 张地图（Ch01-05）→ 病根消失",
+        "Ch06 起：AI 帮你加速而非替代判断"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "接下来 14 章",
+      "items": [
+        "Ch01-05 概念 / Ch06-11 场景 / Ch12 安全 / Ch13 进价",
+        "Ch14 合拢：3 件产出（总图/追问/30 天）"
+      ]
+    }
+  ]
+}

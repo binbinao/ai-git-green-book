@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "分支 = 项链上的名牌",
+    "subtitle": "Ch03 · 5 颗 commit 串成项链，两个分支名牌指向不同位置",
+    "output": "ch03-branch-chain.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "C1",
+      "type": "database",
+      "label": "C1",
+      "sublabel": "提交 1",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        52,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "C2",
+      "type": "database",
+      "label": "C2",
+      "sublabel": "提交 2",
+      "pos": [
+        114,
+        152
+      ],
+      "size": [
+        52,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "C3",
+      "type": "database",
+      "label": "C3",
+      "sublabel": "提交 3",
+      "pos": [
+        194,
+        152
+      ],
+      "size": [
+        52,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "C4",
+      "type": "database",
+      "label": "C4",
+      "sublabel": "提交 4",
+      "pos": [
+        274,
+        152
+      ],
+      "size": [
+        52,
+        72
+      ],
+      "tag": "main 指向"
+    },
+    {
+      "id": "C5",
+      "type": "database",
+      "label": "C5",
+      "sublabel": "提交 5",
+      "pos": [
+        378,
+        152
+      ],
+      "size": [
+        52,
+        72
+      ],
+      "tag": "feature 指向"
+    },
+    {
+      "id": "main",
+      "type": "backend",
+      "label": "main 分支",
+      "sublabel": "名牌指向 C4",
+      "pos": [
+        274,
+        34
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": "MAIN"
+    },
+    {
+      "id": "feature",
+      "type": "frontend",
+      "label": "feature 分支",
+      "sublabel": "名牌指向 C5",
+      "pos": [
+        378,
+        34
+      ],
+      "size": [
+        82,
+        72
+      ],
+      "tag": "FEATURE"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "项链：5 颗 commit 串成链",
+      "wraps": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1-c2",
+      "from": "C1",
+      "to": "C2",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c2-c3",
+      "from": "C2",
+      "to": "C3",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c3-c4",
+      "from": "C3",
+      "to": "C4",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c4-c5",
+      "from": "C4",
+      "to": "C5",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "main-c4",
+      "from": "main",
+      "to": "C4",
+      "label": "ref: refs/heads/main",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        312.0,
+        129.0
+      ]
+    },
+    {
+      "id": "feature-c5",
+      "from": "feature",
+      "to": "C5",
+      "label": "ref: refs/heads/feature",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        419.0,
+        129.0
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "分支的本质：移动的名牌",
+      "items": [
+        "分支 = refs/heads/ 目录里的一个文件",
+        "文件内容 = 40 字符的 SHA 哈希",
+        "创建分支：写一个新文件指向某个 commit",
+        "切换分支：HEAD 指向另一个 refs 文件"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "feature 分支不是新项链",
+      "items": [
+        "feature 不是平行宇宙，是同一项链上的一个新名牌",
+        "切换 feature 不复制 commit，只切换 HEAD",
+        "删除分支：删除 refs/heads/feature 文件，commit 还在 .git/objects/ 躺着（reflog 还可救）"
+      ]
+    }
+  ]
+}

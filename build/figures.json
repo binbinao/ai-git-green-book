@@ -1,0 +1,479 @@
+[
+ {
+  "file": "manuscript/ch00-breaking-the-spell.md",
+  "block_idx": 0,
+  "lines": 2,
+  "draw_chars": 9,
+  "preview": "遇到问题 → 搜命令 → 抄命令 → 能跑 → 问题变种 → 抄的命令失灵 →",
+  "body": "遇到问题 → 搜命令 → 抄命令 → 能跑 → 问题变种 → 抄的命令失灵 →\n更慌 → 抄更多命令 → 更加依赖搜索 → 离\"理解\"越来越远\n",
+  "class": "FLOW"
+ },
+ {
+  "file": "manuscript/ch00-breaking-the-spell.md",
+  "block_idx": 3,
+  "lines": 15,
+  "draw_chars": 8,
+  "preview": "Cargo-Cult Git：仪式正确，因果不明 —— 全球流行病",
+  "body": "Cargo-Cult Git：仪式正确，因果不明 —— 全球流行病\n        │\n        ▼\n病根不是命令太多，而是概念模型缺失\n        │\n        ▼\n治疗：5 张概念地图（仓库/提交/分支/远程/历史）\n        │\n        ▼\nAI 时代新分工：你出意图与判断，AI 出语法与执行\n        │\n        ▼\n前提：概念词汇表 = 你与 AI 的 API\n      确认框要成立，你得读得懂它\n      出事后，地图决定你慌多久\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch01-repository.md",
+  "block_idx": 0,
+  "lines": 19,
+  "draw_chars": 78,
+  "preview": ".git/",
+  "body": ".git/\n├── HEAD              ← 当前站在哪里（一行文本）\n├── config            ← 这个仓库的本地配置\n├── description       ← 给 gitweb 显示用的（几乎没人管）\n├── hooks/            ← 事件触发的脚本（第 13 章讲）\n├── info/             ← 排除规则等杂项\n├── objects/          ← ★ 核心数据库：所有内容都在这里\n│   ├── 3f/\n│   │   └── a2b7c8...   ← 一个对象文件\n│   ├── 8b/\n│   ├── ...\n│   └── pack/           ← 打包压缩后的对象\n├── refs/             ← ★ 引用表：所有\\\"名字\\\"都在这里\n│   ├── heads/         ← 本地分支\n│   ├── tags/          ← 标签\n│   └── remotes/       ← 远程分支的本地缓存（第 4 章）\n├── logs/             ← reflog：所有 HEAD 移动的记录（第 5 章救命用）\n├── index             ← 暂存区快照（下一节讲）\n└── packed-refs       ← 打包过的引用\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch01-repository.md",
+  "block_idx": 1,
+  "lines": 16,
+  "draw_chars": 144,
+  "preview": "        远端（GitHub / GitLab / 内网 Gitea）",
+  "body": "        远端（GitHub / GitLab / 内网 Gitea）\n        ┌───────────────────────────┐\n        │ 服务器上的 project.git/    │\n        │  ├─ objects/  (全量对象)   │\n        │  └─ refs/     (全量引用)   │\n        └────────────┬──────────────┘\n                     │  git clone\n                     ▼\n        本地磁盘  ~/work/project/\n        ┌───────────────────────────┐\n        │ .git/                      │← 与远端结构一致的完整拷贝\n        │  ├─ objects/  (全量对象)   │\n        │  └─ refs/     (全量引用)   │\n        │                            │\n        │ src/  README.md  ...       │← 从 .git 里\\\"读档\\\"铺出来的工作区\n        └───────────────────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch01-repository.md",
+  "block_idx": 3,
+  "lines": 19,
+  "draw_chars": 21,
+  "preview": "仓库 = 一个自包含的历史数据库 = 你项目根目录下的 .git/",
+  "body": "仓库 = 一个自包含的历史数据库 = 你项目根目录下的 .git/\n  │\n  ├─ objects/  内容寻址库（按 SHA 存所有版本的所有内容）\n  ├─ refs/     引用表（给哈希起人类可读的名字）\n  ├─ HEAD      当前站在哪里\n  ├─ config    这个仓库的本地配置\n  ├─ hooks/    事件触发脚本（第 13 章）\n  ├─ logs/     reflog：所有 HEAD 移动的记录（第 5 章救命用）\n  └─ index     暂存区快照（第 2 章讲）\n\n三种形态：\n  ├─ 本地仓库（有工作区）      —— 你每天用的\n  ├─ 裸仓库（只有 .git 内容）  —— 服务器上的都是这个\n  └─ 远程副本                  —— 其实就是别人的仓库 + 你的引用\n\n三个直接推论：\n  1) 完全可以脱网干活（只有 push/fetch/clone/pull 需要网络）\n  2) 删了 GitHub 你的历史没死（只要本地 .git 还在）\n  3) clone 是复制整个档案馆，不是下载文件\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch02-commit.md",
+  "block_idx": 1,
+  "lines": 12,
+  "draw_chars": 198,
+  "preview": "   ┌────────────────────┐     ┌───────────────────",
+  "body": "   ┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐\n   │   工作目录          │     │   暂存区            │     │   仓库              │\n   │  (working dir)     │     │  (staging area)    │     │  (.git/objects/)   │\n   │                    │     │                    │     │                    │\n   │  你实际编辑的文件    │ add │  下一次 commit      │commit│  已提交的历史       │\n   │  A.py (改了)       │────▶│  会包含哪些内容      │─────▶│  一颗颗珠子的档案库  │\n   │  B.py (新增)       │     │  的一个\\\"入库单\\\"     │     │                    │\n   │  C.py (没动)       │     │                    │     │                    │\n   └────────────────────┘     └────────────────────┘     └────────────────────┘\n\n               ◀────── checkout / restore ──────\n               (从仓库里读出某个版本到工作目录/暂存区)\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch02-commit.md",
+  "block_idx": 5,
+  "lines": 20,
+  "draw_chars": 14,
+  "preview": "提交 = 一个不可变的三元组",
+  "body": "提交 = 一个不可变的三元组\n  │\n  ├─ 全量快照（不是 diff！物理上按内容去重，逻辑上每次都完整）\n  ├─ parent 指针（1 个 = 常规、2 个 = merge、0 个 = 首个）\n  └─ 元信息 + SHA 身份证（改任何一点，SHA 就变，就是新珠子了）\n\n三区模型 = Git 塞在你和仓库之间的\\\"提交塑形工具\\\"\n  │\n  ├─ 工作目录  你实际编辑的文件\n  ├─ 暂存区    下次 commit 会包含什么的\\\"入库单\\\"\n  └─ 仓库      已入库的历史珠子\n  \n  add   = 搬上入库台\n  commit = 入库（把暂存区打包成一颗珠子）\n\n关键推论：\n  1) cherry-pick/revert/bisect 都以\\\"一颗珠子\\\"为原子对象\n  2) 丢弃的珠子 ≠ 消失（reflog 里都在）\n  3) SHA 是团队沟通的最小单位\n  4) \\\"改\\\" commit 都是\\\"造新+挪名牌\\\"——珠子从不被修改\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch03-branches.md",
+  "block_idx": 0,
+  "lines": 3,
+  "draw_chars": 8,
+  "preview": ".git/refs/heads/",
+  "body": ".git/refs/heads/\n├── main            ← 一个文件，里面是 41 个字节\n└── feature-login   ← 一个文件，里面也是 41 个字节\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch03-branches.md",
+  "block_idx": 2,
+  "lines": 10,
+  "draw_chars": 115,
+  "preview": "      ┌─────────────────────────────────────────┐",
+  "body": "      ┌─────────────────────────────────────────┐\n      │              提交的项链                   │\n      │                                         │\n      │  (C1)──▶(C2)──▶(C3)──▶(C4)──▶(C5)       │\n      │                            │      │     │\n      └────────────────────────────┼──────┼─────┘\n                             main ──┘      │\n                             （名牌挂在 C4） │\n                                  feature ─┘\n                             （名牌挂在 C5）\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch03-branches.md",
+  "block_idx": 6,
+  "lines": 13,
+  "draw_chars": 28,
+  "preview": "分支 = refs/heads/ 里的一个文件 = 指向某次提交的可移动指针",
+  "body": "分支 = refs/heads/ 里的一个文件 = 指向某次提交的可移动指针\n  │\n  ├─ 创建：写一行字（免费）        ──▶ 所以试错应该大胆\n  ├─ 删除：摘名牌（提交还在）      ──▶ 所以删除不需要恐惧\n  └─ 切换：HEAD 挪位 + 读档铺开    ──▶ 所以未提交改动会被拦下\n  \nHEAD = 指向指针的指针\n  ├─ 正常：HEAD → 分支 → 提交\n  └─ detached：HEAD → 提交（无名牌）\n        └─ 新提交会成\"无主孤珠\" ──▶ 想留住就 switch -c 挂名牌\n\n什么时候开分支：\n  1) 需要评审边界（功能/修复）     2) 实验可能整体扔掉     3) 需要真并行（别用 stash 凑合）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch04-remote.md",
+  "block_idx": 2,
+  "lines": 6,
+  "draw_chars": 19,
+  "preview": ".git/refs/remotes/",
+  "body": ".git/refs/remotes/\n└── origin/\n    ├── main            ← 一个文件，40 个字符\n    ├── develop         ← 一个文件，40 个字符\n    ├── feature-x       ← 一个文件，40 个字符\n    └── HEAD            ← 记 origin 那边的默认分支是哪个\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch04-remote.md",
+  "block_idx": 7,
+  "lines": 13,
+  "draw_chars": 26,
+  "preview": "    远端 origin/main（服务器上）",
+  "body": "    远端 origin/main（服务器上）\n        │\n        ▼\n    A ── B ── C ── D ── E    ← 别人已经推了 D 和 E 上去\n                    ▲\n                    │\n    你本地 main（自己电脑上）\n        │\n        ▼\n    A ── B ── C ── X ── Y    ← 你在 C 之上造了 X 和 Y\n                    ▲\n                    │\n                   你 push 就是想让远端从 E 挪到 Y\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch04-remote.md",
+  "block_idx": 8,
+  "lines": 19,
+  "draw_chars": 294,
+  "preview": "    ┌─────────────────────────────────────────┐",
+  "body": "    ┌─────────────────────────────────────────┐\n    │  上游项目 (upstream)                     │\n    │  github.com/original/project             │  ← 原始项目、\\\"官方\\\"、你没有 push 权\n    │  远端项链: ...─▶ (D) ─▶ (E) ─▶ (F)      │\n    └───────┬──────────────────────▲──────────┘\n            │ Fork（平台操作）        │\n            ▼                       │ Pull Request\n    ┌─────────────────────────────────────────┐\n    │  你的 fork (origin)                      │\n    │  github.com/你的用户名/project           │  ← 你在 GitHub 上的一份拷贝、你有 push 权\n    │  远端项链: 从 upstream 分岔出来的一支     │\n    └───────┬──────────────────────▲──────────┘\n            │ git clone            │  git push\n            ▼                      │\n    ┌─────────────────────────────────────────┐\n    │  本地仓库 (你笔记本上)                    │\n    │  .git/refs/remotes/origin/*             │  ← 你实际写代码的地方\n    │  .git/refs/remotes/upstream/*  (可选)   │  ← 你手动加一个远程指向官方\n    └─────────────────────────────────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch04-remote.md",
+  "block_idx": 13,
+  "lines": 31,
+  "draw_chars": 40,
+  "preview": "远程 = 你的仓库对另一个仓库的引用 = 别名 + URL（.git/config 里两行字）",
+  "body": "远程 = 你的仓库对另一个仓库的引用 = 别名 + URL（.git/config 里两行字）\n  │\n  ├─ 别名（origin/upstream/whatever）—— 你随便起\n  ├─ URL —— 指向另一份 .git/\n  └─ fetch refspec —— 从哪儿拉、放到哪儿\n\n远程分支 = 本地缓存！ = .git/refs/remotes/<remote>/<branch>\n  │\n  ├─ 物理上：一个文件，40 个字符（和本地分支一模一样）\n  ├─ 语义上：\\\"我上次听说远端那个分支指向哪颗珠子\\\"\n  └─ 更新时机：只有 fetch / pull / push 会碰它\n\n碰网络的只有 fetch 家族与 push：clone / fetch / pull / push / ls-remote / remote show / remote update\n  │\n  ├─ fetch  只更新缓存，本地分支/HEAD/工作区全不动（最安全）\n  ├─ pull   = fetch + merge/rebase（一个宏，把决策塞进了默认）\n  └─ push   把本地推到远端（受 fast-forward 保护）\n\nupstream = 本地分支绑定的远程分支（默认 push/pull 走这条）\n  │\n  └─ 首次 push 时用 -u 建立；之后 push/pull 不用写目标\n\nFork 工作流三层：\n  local ──▶ origin (你的 fork) ──▶ upstream (原始项目)\n        push          PR\n\nnon-fast-forward = Git 在按停按钮\n  │\n  ├─ 意思：远端有我不知道的 commit，我不敢帮你决定\n  ├─ 正确应对：fetch → 看清楚 → rebase → 再 push\n  └─ 绝不要：一见拒就 --force（尤其在共享分支上）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 2,
+  "lines": 3,
+  "draw_chars": 11,
+  "preview": "  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)",
+  "body": "  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)\n                                     ▲\n                                    main\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 3,
+  "lines": 5,
+  "draw_chars": 19,
+  "preview": "  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)        ← 旧",
+  "body": "  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)        ← 旧项链，still there\n             \\\n              ─▶ (BC') ─▶ (E') ─▶ (D')          ← 新项链\n                                    ▲\n                                   main（已挪过来）\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 4,
+  "lines": 9,
+  "draw_chars": 23,
+  "preview": "合并前：",
+  "body": "合并前：\n  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)\n                ▲                    ▲\n               main                feature\n\n合并后（fast-forward）：\n  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)\n                                     ▲\n                                   main、feature\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 5,
+  "lines": 11,
+  "draw_chars": 47,
+  "preview": "合并前：",
+  "body": "合并前：\n  ...─▶ (A) ─▶ (B)         ← 共同祖先\n              ├─▶ (C) ─▶ (D)      ← main\n              └─▶ (X) ─▶ (Y)      ← feature\n\n合并 feature 进 main 之后：\n  ...─▶ (A) ─▶ (B)\n              ├─▶ (C) ─▶ (D) ─────▶ (M)     ← merge commit（两个 parent）\n              └─▶ (X) ─▶ (Y) ──────┘         ← 指向 D 和 Y\n                                    ▲\n                                   main\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 6,
+  "lines": 8,
+  "draw_chars": 34,
+  "preview": "rebase 之前：",
+  "body": "rebase 之前：\n  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D)          ← main\n              └─▶ (X) ─▶ (Y)               ← feature\n\nrebase 之后：\n  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (X') ─▶ (Y')     ← main、feature\n              └─▶ (X) ─▶ (Y)                             ← 旧珠子还在 objects 里\n                                                          （reflog 记得它们）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 11,
+  "lines": 10,
+  "draw_chars": 32,
+  "preview": "rebase 之前（你已经 push 过一次）：",
+  "body": "rebase 之前（你已经 push 过一次）：\n  远端 feature/user-profile:  ...─▶ (X1) ─▶ (X2) ─▶ ...─▶ (X8)\n  你本地 feature/user-profile: ...─▶ (X1) ─▶ (X2) ─▶ ...─▶ (X8)\n  一致。\n\n你 rebase -i、squash/fixup 之后：\n  远端 feature/user-profile:  ...─▶ (X1) ─▶ (X2) ─▶ ...─▶ (X8)   ← 没变\n  你本地 feature/user-profile: ...─▶ (X1') ─▶ (X2') ─▶ (X3')     ← 3 颗全新珠子\n  \n  X1-X8 都在你本地 objects 里，但 feature 名牌指着新的 X1'-X3'。\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 12,
+  "lines": 8,
+  "draw_chars": 12,
+  "preview": "初始状态：",
+  "body": "初始状态：\n  ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (D) ─▶ (E)\n                              ▲     ▲\n                              目标  HEAD/main\n                              位置\n\n  工作目录：E 的快照 + 你未提交的改动（如果有）\n  暂存区：  E 的状态（假设一切干净）\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 17,
+  "lines": 9,
+  "draw_chars": 20,
+  "preview": "revert 之前：",
+  "body": "revert 之前：\n  ...─▶ (A) ─▶ (B) ─▶ (X) ─▶ (D)\n                              ▲\n                             main\n\nrevert X 之后：\n  ...─▶ (A) ─▶ (B) ─▶ (X) ─▶ (D) ─▶ (X⁻¹)\n                                     ▲\n                                   main\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 19,
+  "lines": 35,
+  "draw_chars": 40,
+  "preview": "核心原理：珠子不可变，项链可塑",
+  "body": "核心原理：珠子不可变，项链可塑\n  │\n  ├─ \"重写历史\" = 造一批新珠子 + 挪名牌 + 旧珠子进 reflog\n  └─ 旧珠子还在 objects 里，reflog 记着，30 天 GC 期\n\n合并两条项链的两种方式：\n  ┌─ merge：打个结（造一颗有两个 parent 的 M 珠子）\n  │    ├─ fast-forward：不打结、只挪名牌\n  │    ├─ 三方合并：造 M 珠子（可能有冲突）\n  │    └─ 章鱼合并：多个分支一次合（M 有多个 parent，罕见）\n  └─ rebase：拆下来重串（造一串新珠子）\n       ├─ 线性化历史，SHA 全变\n       ├─ 冲突逐颗停，可 --continue 或 --abort\n       └─ 交互式（-i）：pick / squash / fixup / reword / reorder / drop\n\n黄金规则：不要 rebase / amend / reset 已推送的共享分支\n  │\n  ├─ 违反后果：同事本地的旧珠子成\"野\"珠子，pull 时天翻地覆\n  ├─ 安全边界：个人 feature 分支可以 rebase，共享分支只能 merge / revert\n  └─ push 被拒（non-fast-forward）：先 fetch，看清楚，再决定\n\nreset 三态：\n  ┌─ --soft  只挪名牌           （改动全保留在暂存区）\n  ├─ --mixed 挪名牌 + 清暂存区   （改动留在工作目录）\n  └─ --hard  挪名牌 + 清全部     （危险：会抹掉未提交改动）\n\nrevert：造抵消珠子，不改历史（共享分支唯一安全的\"撤销\"方式）\n\nreflog：本地操作的黑匣子，默认 30 天 GC 期\n  │\n  └─ 几乎所有\"哎呀丢了\"的场景都能救回：git reflog + git reset --hard <sha>\n\n黄色操作前的两步安全网：\n  1) git branch backup/<描述>-<时间戳>\n  2) git reflog  （心里对当前 HEAD 有底）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch05-history.md",
+  "block_idx": 20,
+  "lines": 50,
+  "draw_chars": 256,
+  "preview": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "body": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n                      五张地图 · 全书概念主干\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n【地图 1 · 仓库】（第 1 章）\n    .git/ = 内容寻址数据库 + 引用表\n    仓库是自包含的、本地完整的、可脱网运行的历史数据库\n    clone 不是\"下载文件\"，是复制整个数据库\n\n【地图 2 · 提交】（第 2 章）  ─── 珠子\n    commit = 全量快照 + parent 指针 + 元信息 + SHA\n    不可变：改任何一样，SHA 就变，就是别的珠子\n    三区模型：工作目录 → add → 暂存区 → commit → 仓库\n\n【地图 3 · 分支】（第 3 章）  ─── 名牌\n    branch = refs/heads/ 里的一行 SHA（可移动的指针）\n    分支不是代码拷贝、删除分支不是删除代码、切换分支不是搬运\n    HEAD = 指向指针的指针（正常态和 detached 态）\n\n【地图 4 · 远程】（第 4 章）  ─── 镜子里的项链\n    remote = 别名 + URL（config 里两行字）\n    远程分支 = 本地缓存（refs/remotes/<remote>/<branch>）\n    碰网络：fetch 家族与 push（clone/fetch/pull/push/ls-remote/remote update）\n    non-fast-forward = Git 在按停按钮\n\n【地图 5 · 历史】（第 5 章）  ─── 重串项链\n    珠子不可变，项链可塑\n    \"重写历史\" = 造新珠子 + 挪名牌 + 旧珠子进 reflog\n    merge 打结、rebase 重串、reset 挪名牌、revert 造抵消珠子\n    黄金规则：共享分支不重写\n    reflog = 本地黑匣子，保管期 30/90 天（不可达 30、可达 90）\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n这五张地图组合起来的 mental model：\n\n    (仓库) = 装 (珠子) 的档案馆\n        │\n        └─ 珠子之间靠 parent 指针串成 (项链)\n              │\n              └─ (名牌) 挂在某颗珠子上，标出\"我在这儿\"\n                    │\n                    └─ 同样的项链在别人档案馆里也有一份，\n                        我这边给它开了一面 (镜子) 观察\n                          │\n                          └─ 项链可以被拆下来重串（造新珠子），\n                              但共享分享的珠子不要动\n                              （黄金规则）\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n",
+  "class": "MAP"
+ },
+ {
+  "file": "manuscript/ch06-commit-craft.md",
+  "block_idx": 7,
+  "lines": 25,
+  "draw_chars": 128,
+  "preview": "commit = 一颗不可变的珠子 + 一段给人看的电报（message）",
+  "body": "commit = 一颗不可变的珠子 + 一段给人看的电报（message）\n\n好提交的两条标准：\n  ① 原子性：一颗珠子一件事 ──▶ revert 试金石：能不能干净地撤销一件事？\n  ② 可读性：Conventional Commits + body 写\"为什么\" ──▶ 六个月后的自己看得懂\n\nAI 分工：\n  ┌─ AI 做得动（语法工作）─────────────┬─ AI 做不了（判断工作）───────────┐\n  │ · 从 diff 生成 message              │ · 判断拆分边界在哪              │\n  │ · 按逻辑分组、分批 stage            │ · 判断此时该不该 commit         │\n  │ · 跨提交摘要（release note）        │ · 判断半成品该不该以 wip 存档   │\n  │ · 每周做代码考古（审阅报告）        │ · 判断 message 和 diff 是否匹配  │\n  └─────────────────────────────────┴─────────────────────────────────┘\n\n半成品存档决策：\n  5 分钟内回来 ──▶ 什么都不做\n  30 分钟到 2 小时 ──▶ wip 分支（不要 stash！）\n  超过一天 / 换电脑 ──▶ 必须 wip 分支\n  AI 参与开发 ──▶ 一律 wip 分支（隔离主分支的干净度）\n\n红黄绿三色：\n  🟢 让 AI 生成 message、拆分方案、release note、每周审阅\n  🟡 让 AI 拆 commit / squash 历史 —— 先给方案，你按快门\n  🔴 不可逆销毁 / 覆盖共享远端 / 涉及凭证 —— 流程级确认，你亲手来\n  push 之前人眼扫 diff（debug 遗留、假数据、敏感文件）—— 不分颜色的铁律\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch07-branching-strategies.md",
+  "block_idx": 0,
+  "lines": 6,
+  "draw_chars": 6,
+  "preview": "main               ← 永远指向已发布的最新稳定版（打了 tag 的那颗）",
+  "body": "main               ← 永远指向已发布的最新稳定版（打了 tag 的那颗）\ndevelop            ← 下一个版本的集成分支\nfeature/*          ← 从 develop 长出，回合到 develop\nrelease/4.0        ← 4.0 快发布了，从 develop 切出，只接受修复\nhotfix/v3.4.7      ← 客户报的 3.4 bug，从 v3.4 的 tag 切出\nsupport/3.4        ← 长期支持分支（GitFlow 变种里的额外角色）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch07-branching-strategies.md",
+  "block_idx": 1,
+  "lines": 25,
+  "draw_chars": 230,
+  "preview": "                     ┌────────────────────────────",
+  "body": "                     ┌─────────────────────────────┐\n                     │  你们有没有\\\"多个版本同时在  │\n                     │   客户现场跑\\\"的负担？       │\n                     └─────────┬───────────────────┘\n                               │\n              ┌────────── 有 ──┴── 没有 ──────────┐\n              │                                    │\n              ▼                                    ▼\n     ┌──────────────────┐              ┌──────────────────────┐\n     │ 你们的发布是不是 │              │ 你们的工程能力到 L3 │\n     │ 有\\\"冻结 + QA\\\"  │              │ 了吗？（feature flag│\n     │ 仪式的？         │              │ + CD + 可观测）      │\n     └────┬─────────────┘              └────────┬─────────────┘\n          │                                     │\n     ┌── 是──┴── 否 ──┐                 ┌── 是──┴── 否 ──┐\n     │              │                    │              │\n     ▼              ▼                    ▼              ▼\n  【GitFlow】   【简化 GitFlow：      【Trunk-Based】 【GitHub Flow】\n                 main + hotfix +\n                 release，去掉\n                 develop】\n\n  兜底规则：拿不准时，先用 GitHub Flow。它是最普适的\\\"够用\\\"选项，\n  上下都能扩展——功能变强再往 Trunk-Based 迁，需求变复杂再往\n  GitFlow 靠。**不要一开始就选最重的。**\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch07-branching-strategies.md",
+  "block_idx": 2,
+  "lines": 8,
+  "draw_chars": 8,
+  "preview": "main                    ← 主干，永远可发布",
+  "body": "main                    ← 主干，永远可发布\nfeat/<short-desc>       ← 新功能，如 feat/user-profile-avatar\nfix/<short-desc>        ← Bug 修复，如 fix/csv-date-format\nchore/<short-desc>      ← 杂务（依赖升级、配置调整），如 chore/upgrade-node18\ndocs/<short-desc>       ← 文档修改\nspike/<short-desc>      ← 一次性实验分支，可随时整支删除\nrescue/<date>           ← 抢救 detached HEAD 或误操作，如 rescue/2026-09-18\nagent/<agent-name>/<desc> ← AI agent 生成的分支（可选，用于差异化流程）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch07-branching-strategies.md",
+  "block_idx": 5,
+  "lines": 20,
+  "draw_chars": 27,
+  "preview": "分支策略 = 团队对\\\"怎么协作、怎么发布、怎么承担风险\\\"的一次公开表态",
+  "body": "分支策略 = 团队对\\\"怎么协作、怎么发布、怎么承担风险\\\"的一次公开表态\n  │\n  ├─ 三种主流：\n  │    Trunk-Based   ← 短命分支 + 高频合流 + feature flag（大厂主干）\n  │    GitHub Flow   ← main + PR + 合并即部署（SaaS/开源甜蜜点）\n  │    GitFlow       ← main/develop 双主干 + release/hotfix（多版本并存产品）\n  │\n  ├─ 四问决策：\n  │    1) 发布节奏？        每天多次 / 每周 / 每月 / 不定期\n  │    2) 代码所有权？      重叠改动多不多\n  │    3) 工程成熟度？      L1（手动）/ L2（半自动）/ L3（全自动+flag）\n  │    4) 回滚需求？        关 flag / revert PR / 回到 tag 版本\n  │\n  ├─ AI 时代新变量：\n  │    分支策略的粒度从\\\"人的并行度\\\"变成\\\"人+AI 的并行度\\\"\n  │    → 短命分支 + 自动合流的价值放大\n  │    → 分支保护规则需要收紧（不是不信 AI，是给它兜底边界）\n  │\n  └─ 团队约定必须写下来：\n       分支命名 + 生命周期 + main 保护 + PR 模板 + AI 参与规则 + 例外流程\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch08-worktree.md",
+  "block_idx": 0,
+  "lines": 19,
+  "draw_chars": 241,
+  "preview": "                    ┌─────────────────────────┐",
+  "body": "                    ┌─────────────────────────┐\n                    │      .git/  (共享)       │\n                    │                          │\n                    │  ┌─ objects/            │ ← 珠子本体（对象库）\n                    │  ├─ refs/               │ ← 所有引用（分支/tag）\n                    │  ├─ HEAD → main         │ ← 主工作台的 HEAD\n                    │  └─ worktrees/          │ ← 其他工作台的 HEAD\n                    │       ├─ hotfix/HEAD    │\n                    │       └─ review/HEAD    │\n                    └─────────┬───────────────┘\n                              │\n              ┌───────────────┼───────────────┐\n              ▼               ▼               ▼\n     ┌─────────────┐  ┌─────────────┐  ┌─────────────┐\n     │ 主工作台     │  │ 工作台 A     │  │ 工作台 B     │\n     │ ~/proj/     │  │ ~/proj-hot/ │  │ ~/proj-rev/ │\n     │ 站在 main    │  │ 站在 hotfix │  │ 站在 pr/42  │\n     │ ↑ 你写代码   │  │ ↑ 你修 bug  │  │ ↑ 你跑评审  │\n     └─────────────┘  └─────────────┘  └─────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch08-worktree.md",
+  "block_idx": 2,
+  "lines": 29,
+  "draw_chars": 99,
+  "preview": "~/projects/myapp/                 ← 主工作台",
+  "body": "~/projects/myapp/                 ← 主工作台\n├── .git/                          ← 真正的数据库在这里\n│   ├── objects/                   ← 所有珠子\n│   ├── refs/                      ← 所有引用\n│   ├── HEAD                       ← 主工作台指向 main\n│   └── worktrees/                 ← 其他工作台的登记簿\n│       ├── proj-hotfix/\n│       │   ├── HEAD               ← 那个工作台指向 hotfix/urgent-fix\n│       │   ├── index\n│       │   └── gitdir             ← 反向指针，指回 ../proj-hotfix/.git\n│       └── proj-review/\n│           ├── HEAD\n│           ├── index\n│           └── gitdir\n├── src/\n├── package.json\n└── ...\n\n~/projects/proj-hotfix/           ← 副工作台（worktree A）\n├── .git                            ← 【文本文件】gitdir: .../worktrees/proj-hotfix\n├── src/\n├── package.json\n└── ...\n\n~/projects/proj-review/           ← 副工作台（worktree B）\n├── .git                            ← 【文本文件】gitdir: .../worktrees/proj-review\n├── src/\n├── package.json\n└── ...\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch08-worktree.md",
+  "block_idx": 15,
+  "lines": 29,
+  "draw_chars": 46,
+  "preview": "Worktree = 同一个 .git/ 数据库同时铺开的多张工作台",
+  "body": "Worktree = 同一个 .git/ 数据库同时铺开的多张工作台\n  │\n  ├─ 核心事实：仓库 与 工作目录 可以解耦\n  │    → 一份 objects/refs（共享）\n  │    → 多个 HEAD/index/工作文件（独立）\n  │\n  ├─ 三条使用姿势：\n  │    A. 短命工作台     → hotfix / PR review / 长跑测试期间加班\n  │    B. 长期专用工作台 → 给每个 AI agent 一张固定工作台\n  │    C. 并行沙盘       → 危险实验（大 rebase / reset / 脚本重写）\n  │\n  ├─ 选择表（当下这一刻）：\n  │    暂停一下         → stash\n  │    只是想换个视角    → 切分支 or WIP commit\n  │    要\"同时干两件事\" → worktree\n  │    要长期分叉出去   → clone\n  │\n  ├─ AI 时代的招牌用法：\n  │    让 agent 住进独立 worktree\n  │    → 主工作区零干扰\n  │    → 试错整支扔掉（worktree remove）\n  │    → 多 agent 并行有文件系统层隔离\n  │\n  ├─ 三条铁律：\n  │    ① 同一分支不能同时检出在两张工作台上\n  │    ② 删目录不等于注销（要 remove 或 prune）\n  │    ③ 对象/引用/hooks/config 是仓库全局的（一处改全局改）\n  │\n  └─ 清理动作：worktree remove（干净）> worktree prune（补救）> rm -rf（错误）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch09-conflicts.md",
+  "block_idx": 2,
+  "lines": 24,
+  "draw_chars": 106,
+  "preview": "   共同祖先 B",
+  "body": "   共同祖先 B\n   ┌────────────────────────────┐\n   │ export async function      │\n   │   fetchUser(id) {          │\n   │   return get(`/u/${id}`)   │\n   │ }                          │\n   └────────┬───────────────────┘\n            │\n     ┌──────┴──────┐\n     ▼             ▼\n 你这一侧          对面这一侧\n (HEAD)           (feature/user-refactor)\n 加了 options 参数  把 id 改成 number 类型\n     │             │\n     └──────┬──────┘\n            ▼\n   Git 视角：这几行两边都动了，我不知道最终该长什么样\n            │\n            ▼\n   <<<<<<< HEAD\n     ...你这一侧...\n   =======\n     ...对面那一侧...\n   >>>>>>> feature/user-refactor\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch09-conflicts.md",
+  "block_idx": 7,
+  "lines": 17,
+  "draw_chars": 37,
+  "preview": "每一段 <<<<<<< ======= >>>>>>>",
+  "body": "每一段 <<<<<<< ======= >>>>>>>\n   │\n   ├─ 第一步：读两侧 → 用人话说清各自意图（A 想干什么、B 想干什么）\n   │                    ↑\n   │                    AI 在这一步做得比大多数人好\n   │\n   ├─ 第二步：判断关系\n   │       ├─ (a) 真冲突 ── 拉人对齐、选一侧\n   │       ├─ (b) 伪冲突 ── 手工合成第三份\n   │       ├─ (c) 过时  ── 接受对面\n   │       └─ (d) 设计信号 ── 停下重构\n   │\n   ├─ 第三步：动手（选一侧 / 合成 / 保留对面 / 重构）\n   │\n   └─ 第四步：验证（编译 + 类型 + 测试 + 冒烟）\n              ↑\n              走法 A 从来跳过这一步\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch09-conflicts.md",
+  "block_idx": 10,
+  "lines": 25,
+  "draw_chars": 69,
+  "preview": "冲突 = 你的语义需要仲裁，不是 Git 出问题",
+  "body": "冲突 = 你的语义需要仲裁，不是 Git 出问题\n  │\n  ├─ 三方合并算法只看文本行、不看语义\n  │    ├─ 两侧改同一段 → <<<<<<< (表层冲突)\n  │    ├─ 两侧改不同段 → Git 自动合并（可能藏语义冲突！）\n  │    └─ 三种冲突分类：表层 / 语义（无标记，最危险）/ 结构（add/rm/binary）\n  │\n  ├─ 每段 <<<<<<< 走四步仲裁\n  │    ├─ ① 读两侧、说人话（AI 强项）\n  │    ├─ ② 分类关系：真冲突(a)/伪冲突(b)/过时(c)/设计信号(d)\n  │    ├─ ③ 动手：选一侧 / 合成第三份 / 保留对面 / 停下重构\n  │    └─ ④ 验证：编译 + 类型 + 测试 + 冒烟\n  │\n  ├─ 特殊情形\n  │    ├─ lockfile 冲突 ── 扔掉重生成，别手工合\n  │    ├─ 二进制文件   ── 二选一 或 图形化手工合\n  │    ├─ 结构冲突     ── modify/delete、rename、add/add：结构性决策\n  │    └─ rebase 冲突 ── --ours/--theirs 语义颠倒，每颗珠子逐个停\n  │\n  ├─ AI 分工\n  │    ├─ 绿：读两侧、分类、伪冲突合成提议、语义扫描、机械冲突执行\n  │    ├─ 黄：真冲突选边、设计信号重构、跨文件语义识别——都要人过目\n  │    └─ 红：自动接受一侧、绕过冲突改历史、冲突后 force push\n  │\n  └─ 冲突解决完必跑测试 ── 语义冲突不出现在文本上，只在运行时暴露\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch10-recovery.md",
+  "block_idx": 3,
+  "lines": 26,
+  "draw_chars": 369,
+  "preview": "                      ┌───────────────────────────",
+  "body": "                      ┌────────────────────────────────┐\n                      │  第一问：                       │\n                      │  这颗珠子被 push 到远端过吗？   │\n                      └────────────┬───────────────────┘\n                                   │\n                    ┌──────────────┴──────────────┐\n                    │                             │\n                   否 ← 事故在本地             是 ← 事故跨到了远端\n                    │                             │\n                    ▼                             ▼\n        ┌──────────────────────┐    ┌────────────────────────────┐\n        │ reflog 是你的主武器  │    │ 先问第二问：                │\n        │ 90% 概率一条命令搞定 │    │ 你或别人手上还有旧 clone 吗?│\n        │ 慢慢来，别急         │    └──────────────┬─────────────┘\n        └──────────────────────┘                   │\n                                    ┌──────────────┴──────────────┐\n                                    │                             │\n                                   有 → 从旧 clone                没 → 事情变严重\n                                    │   救出历史                   │   （敏感文件已扩散\n                                    │                             │    → 立即吊销凭证）\n                                    ▼                             ▼\n                          ┌──────────────────┐          ┌────────────────────┐\n                          │ 恢复策略是\"合流\"│          │ 恢复策略是\"往前造 │\n                          │ 用 revert 或再  │          │ 珠子\"（第 5 章 revert│\n                          │ push 一次       │          │ 而不是回退历史）    │\n                          └──────────────────┘          └────────────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch10-recovery.md",
+  "block_idx": 17,
+  "lines": 23,
+  "draw_chars": 229,
+  "preview": "┌─────────────────────────────────────────────────",
+  "body": "┌─────────────────────────────────────────────────────────────┐\n│  Git 事故第一小时清单                                        │\n├─────────────────────────────────────────────────────────────┤\n│                                                             │\n│  ⏸  别关终端（现场就是证据）                                 │\n│  ⏸  别再敲命令（尤其是探索性的）                             │\n│  ⏸  先深呼吸，慌乱是第二次伤害                               │\n│                                                             │\n│  📋  先做完这五件事再决定救援策略：                          │\n│      1. 事故是发生在本地？还是已经到远端？                   │\n│      2. `git reflog --date=iso -30` 打印出来                │\n│      3. `git status` 看一眼工作区状态                        │\n│      4. `git log --oneline --all -20` 看一眼当前项链         │\n│      5. 涉及远端？先 `git fetch --all`（**不 pull**）        │\n│                                                             │\n│  🚨  涉及 secret 泄漏？——先吊销凭证，再谈 git                │\n│                                                             │\n│  🤖  叫 AI 帮忙读 reflog：                                   │\n│     「我刚才执行了 X，之后发现 Y，请从 reflog                │\n│      找到执行 X 之前的 HEAD 位置和分支状态。                 │\n│      给我恢复方案，但**在我确认前不要执行**。」               │\n│                                                             │\n└─────────────────────────────────────────────────────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch10-recovery.md",
+  "block_idx": 19,
+  "lines": 41,
+  "draw_chars": 58,
+  "preview": "Git 事故恢复哲学",
+  "body": "Git 事故恢复哲学\n  │\n  ├─ Git 极少扔东西\n  │   ├─ 造过的对象 → objects/ 里躺着\n  │   ├─ 挪过的 HEAD → reflog 里记着\n  │   └─ 托管期两档：commit 级约 30 天 / add-only blob 约 2 周\n  │\n  ├─ 唯一真丢：从没被 git 记录过的东西\n  │   └─ reset --hard 之前的未 add 改动\n  │\n  └─ 慌乱是第二次伤害\n      └─ 事故第一小时清单：别关终端 / 别再敲命令 / 先 fetch / 叫 AI 读 reflog\n\n事故恢复决策树（第一问）\n  │\n  └─ 这颗珠子被 push 到远端过吗？\n      │\n      ├─ 否 → 事故在本地\n      │      → reflog 是主武器\n      │      → 90% 一条命令搞定\n      │\n      └─ 是 → 事故到远端\n             │\n             ├─ 还有别人 clone 未污染 → 从他手上恢复\n             ├─ secret 已扩散 → 立即吊销凭证（第一优先级）\n             └─ 都没有 → revert 而不是回退\n\n8 大事故剧本 · 一句话记忆\n  1. 误删分支             → reflog + git branch <name> <sha>\n  2. reset --hard 抹工作区 → fsck --dangling（未 add 的诚实认输）\n  3. rebase 弄丢提交       → ORIG_HEAD / reflog / cherry-pick\n  4. force push 覆盖远端   → 从同事 clone 恢复（叫团队）\n  5. 误提交敏感文件        → 先吊销凭证，再谈 git（红色事故）\n  6. merge 错了已推        → revert -m 1（不是 reset）\n  7. detached HEAD 切走    → reflog + git branch rescue <sha>\n  8. 误改 main 已 push     → revert + 分支保护补丁\n\n三大安全习惯（黄色操作前必做）\n  1. git branch backup/<描述>-$(date +%Y%m%d-%H%M%S)\n  2. git reflog（心里对当前状态有底）\n  3. 未提交改动？先 stash --include-untracked\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch11-collaboration.md",
+  "block_idx": 0,
+  "lines": 14,
+  "draw_chars": 42,
+  "preview": "      主线项链（origin/main）",
+  "body": "      主线项链（origin/main）\n      ──▶(A)──▶(B)──▶(C)\n                     │\n                     └─ 你 fork/开分支的分岔点\n                     \n      你的分岔项链（origin/feature/xxx）\n                     │\n                     └──▶(X1)──▶(X2)──▶(X3)  ← 你 push 到自己的分支\n                     \n      PR 请求的语义：把 X1、X2、X3 合流回主线\n      \n      主线项链（合流后 origin/main）\n      ──▶(A)──▶(B)──▶(C)──▶(X1')──▶(X2')──▶(X3')\n                                （或 M merge commit）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch11-collaboration.md",
+  "block_idx": 2,
+  "lines": 11,
+  "draw_chars": 17,
+  "preview": "一行代码",
+  "body": "一行代码\n  │\n  └─ blame → 找到 commit SHA\n                │\n                └─ show → 读 commit message（80 字的\\\"why\\\"）\n                                │\n                                └─ 找到 PR 编号\n                                       │\n                                       └─ 翻 PR 描述、讨论、关联 Issue\n                                              │\n                                              └─ 完整的\\\"当时为什么这么做\\\"\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch11-collaboration.md",
+  "block_idx": 5,
+  "lines": 36,
+  "draw_chars": 81,
+  "preview": "团队协作 = 让别人看懂你项链上的这一段变化",
+  "body": "团队协作 = 让别人看懂你项链上的这一段变化\n  │\n  ├─ PR = 平台特性，不是 git 命令\n  │   ├─ 物理层：三部分（commit 差集 / 描述 / 讨论区）\n  │   ├─ 语义层：请求把分岔合流回主线\n  │   └─ 层次：git 本体（差集）+ 平台层（描述、讨论、批准）\n  │\n  ├─ 评审评的是意图，不是 diff\n  │   ├─ diff 只是变更的证据\n  │   ├─ 四个必答问题（做什么/为什么/边界/风险）\n  │   └─ 三个答案在 PR 描述里，不在 diff 里\n  │\n  ├─ AI 时代的评审分工\n  │   ├─ AI 做：风格、模式、覆盖、相似位置、依赖影响（机械）\n  │   ├─ 人做：意图匹配、设计取舍、业务语义、可读性、考古（判断）\n  │   └─ 分工原则：AI 做\\\"能靠代码本身答的\\\"、人做\\\"必须联系代码外才能答的\\\"\n  │\n  ├─ 分支保护 + CODEOWNERS = 事故的服务端防火墙\n  │   └─ 第 10 章 5 个剧本可以在这一层结构性预防\n  │\n  ├─ 远程协作礼仪\n  │   ├─ 黄金规则（第 5 章）：不 rebase 共享分支\n  │   ├─ 万不得已：--force-with-lease + 先通知\n  │   └─ 分布式副本兜底（第 4 章 + 第 10 章剧本 4）\n  │\n  └─ 代码考古\n      ├─ blame：这行最后被谁碰过\n      ├─ log -L / log -S：一行/一段字符串的完整历史\n      ├─ shortlog：团队贡献雷达图\n      └─ 一条链：一行 → blame → SHA → show → message → PR → 完整 why\n      └─ 链条完整度 = 团队协作规范度的最终检验\n\nfork vs shared repo（第 4 章三层图）\n  ├─ 内部固定团队 → shared repo（省事）\n  ├─ 有外部贡献者 / 跨团队 → fork（权限最小化）\n  └─ 无论哪种，main 都要开分支保护\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 0,
+  "lines": 13,
+  "draw_chars": 41,
+  "preview": "       Git 本体（一个傻乎乎的内容数据库）",
+  "body": "       Git 本体（一个傻乎乎的内容数据库）\n              │\n      ┌───────┴───────┬─────────────┐\n      ▼               ▼             ▼\n   仓库里有什么     谁写的        进入你仓库的\n   （机密防线）    （签名防线）    （供应链防线）\n      │               │             │\n   §12.3           §12.5         §12.6\n      │               │             │\n   三道防线：       三层身份：    三个入口：\n   pre-commit      作者/提交者/    clone / submodule\n   服务端扫描        签名者        / AI 拉的东西\n   历史清理\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 1,
+  "lines": 13,
+  "draw_chars": 12,
+  "preview": "你在本地写代码时把 key 贴进了 .env",
+  "body": "你在本地写代码时把 key 贴进了 .env\n        │\n        ▼\n    git add -A       ← 第一道闸能拦（如果你有 pre-commit 扫描）\n        │\n        ▼\n    git commit       ← 也在第一道闸的射程内\n        │\n        ▼\n    git push         ← 第二道闸能拦（服务端 push protection）\n        │\n        ▼\n    GitHub / Gitea    ← 第三道闸是补救（secret scanning + 你的 alert）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 5,
+  "lines": 23,
+  "draw_chars": 220,
+  "preview": "┌─────────────────────────────────────────────────",
+  "body": "┌──────────────────────────────────────────────────────────┐\n│  三道闸的分工                                             │\n├──────────────────────────────────────────────────────────┤\n│                                                          │\n│  第一道：pre-commit 扫描（本地）                          │\n│    目的：让 secret 进不了 commit                          │\n│    盲区：新同事没装的机器                                 │\n│    工具：gitleaks / trufflehog / detect-secrets           │\n│                                                          │\n│  第二道：服务端 push protection                           │\n│    目的：让 secret 进不了服务器                           │\n│    盲区：格式不标准的自研 token                           │\n│    工具：GitHub Push Protection / GitLab / pre-receive    │\n│                                                          │\n│  第三道：secret scanning（事后告警）                      │\n│    目的：让泄漏时间窗从数月压到数分钟                     │\n│    盲区：这一道就是补救，本身不预防                       │\n│    工具：GitHub Secret Scanning / GitLab / 商业 SIEM      │\n│                                                          │\n│  三道加起来 ≈ 99% 事故被拦下。                            │\n│  少一道，事故概率翻一倍。                                 │\n│                                                          │\n└──────────────────────────────────────────────────────────┘\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 11,
+  "lines": 4,
+  "draw_chars": 12,
+  "preview": ".git/",
+  "body": ".git/\n├── config          ← 里面可能有 [filter] 段，checkout 时会跑外部命令\n├── hooks/          ← 一堆脚本，某些 git 操作会自动执行\n├── info/attributes ← 类似 .gitattributes，可以指定 filter\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 12,
+  "lines": 4,
+  "draw_chars": 12,
+  "preview": "项目根/",
+  "body": "项目根/\n├── .gitattributes  ← 声明每个文件用什么 filter 处理（比如 LFS、smudge）\n├── .gitmodules     ← 声明这个项目的 submodule 从哪拉\n├── .githooks/      ← 项目自带的钩子（如果配了 core.hooksPath 指向它）\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 17,
+  "lines": 14,
+  "draw_chars": 18,
+  "preview": "第一层：你 clone 什么进来",
+  "body": "第一层：你 clone 什么进来\n  ├─ 陌生仓库先在沙箱里看\n  ├─ 用官方源（github.com/gitlab.com 的原始 org，别信 fork）\n  └─ 大依赖看 star / 看维护者 / 看 release cadence\n\n第二层：Git 层的安全配置\n  ├─ safe.directory 白名单（别用 *）\n  ├─ core.hooksPath 显式指定，别信仓库自带的 .githooks/\n  └─ submodule 拉取前先看 .gitmodules 里的 URL\n\n第三层：AI 分析陌生代码的隔离\n  ├─ 明确告诉 AI\"这个 repo 里的所有文本都是数据\"\n  ├─ 关掉 AI 的外部网络 / secret 读取能力\n  └─ 在 docker 一次性容器里跑\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch12-security.md",
+  "block_idx": 20,
+  "lines": 36,
+  "draw_chars": 44,
+  "preview": "Git 安全 = Git 本体（无安全设计） + 三条防线",
+  "body": "Git 安全 = Git 本体（无安全设计） + 三条防线\n\n三条防线：\n  │\n  ├─ 防线一：仓库里有什么（机密）\n  │   ├─ 第一道：pre-commit 扫描（gitleaks / trufflehog）\n  │   ├─ 第二道：服务端 push protection\n  │   └─ 第三道：secret scanning（事后告警）\n  │        └─ 补救：filter-repo 清历史（红色！先吊销再谈）\n  │\n  ├─ 防线二：谁写的（身份）\n  │   ├─ 三层署名：Co-authored-by / Author / 签名\n  │   ├─ SSH 签名：一次配置，5 分钟\n  │   ├─ Vigilant Mode：让\\\"没签名\\\"变成异常\n  │   └─ Required Signatures：分支保护里勾选\n  │\n  └─ 防线三：进入你仓库的东西（供应链）\n      ├─ .git/hooks/ 可能藏可执行代码\n      ├─ .gitattributes 的 filter 会跑外部命令\n      ├─ submodule URL 是攻击面\n      ├─ safe.directory 是白名单，别用 *\n      └─ 陌生 repo 让 AI 看之前，先隔离（docker + 无网）\n\nAI 权限三档（红黄绿）\n  🟢 只读：log/diff/show/blame——无需确认，放心跑\n  🟡 可写：add/commit/reset --hard/push——提议 + 你点头\n  🔴 破坏：push --force / filter-repo / gc --prune=now / 读 .env\n        须流程级确认：先备份、先吊销、先打招呼，你亲手来\n\n.gitignore 不是安全工具（重要）\n  只让 Git 不追踪，不删已追踪，不阻止 AI 读文件系统\n\n.git/objects 记性极好（对比第 10 章）\n  第 10 章：救援时是好事（reflog 兜底）\n  第 12 章：泄漏时是坏事（filter-repo 也追不回已扩散的 clone）\n        → 所以 secret 一旦 push 就必须吊销，别指望清理\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch13-advanced.md",
+  "block_idx": 1,
+  "lines": 11,
+  "draw_chars": 30,
+  "preview": "cherry-pick 之前：",
+  "body": "cherry-pick 之前：\n   main:      ...─▶ (A) ─▶ (B) ─▶ (C)          ← HEAD\n   feature:   ...─▶ (X) ─▶ (Y) ─▶ (Z)\n                            ▲\n                          要摘的珠子\n\ncherry-pick Y 之后：\n   main:      ...─▶ (A) ─▶ (B) ─▶ (C) ─▶ (Y')  ← HEAD\n                                          ▲\n                                        新珠子：内容和 Y 一样，SHA 不同\n   feature:   ...─▶ (X) ─▶ (Y) ─▶ (Z)          （Y 原样还在）\n",
+  "class": "DAG"
+ },
+ {
+  "file": "manuscript/ch13-advanced.md",
+  "block_idx": 6,
+  "lines": 7,
+  "draw_chars": 18,
+  "preview": "主项目：       ...─▶ (A) ─▶ (B) ─▶ (C)      ← main",
+  "body": "主项目：       ...─▶ (A) ─▶ (B) ─▶ (C)      ← main\n                              │\n                              └─ 里面登记着：libs/vendor-sdk 挂在子项目的 X 上\n\n子项目：       ...─▶ (X) ─▶ (Y) ─▶ (Z)      ← 子项目自己的 main\n                    ▲\n                  被登记的位置\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch13-advanced.md",
+  "block_idx": 13,
+  "lines": 17,
+  "draw_chars": 10,
+  "preview": "八条边缘小路 · 一张地图",
+  "body": "八条边缘小路 · 一张地图\n\nstash          ─ 抽屉：短期暂停（<10 分钟），长期用 WIP commit 或 worktree\ncherry-pick    ─ 摘一颗珠子：本质是 rebase 的最小单位（一次一颗的重放）\nbisect         ─ 二分坏珠子：log₂(N) 轮定位；AI 时代配 `bisect run` 自动化\ntag            ─ 钉死的指针：发布用附注 tag、开发用 branch；tag 不随 push 走\nsubmodule      ─ 指针指向另一条项链：能用包管理器优先用；痛点几乎全在\\\"两个仓库\\\"\nsubtree        ─ 把内容并进主项链：clone 无痛，反推上游麻烦\nsparse-checkout─ 只展开工作目录一部分\npartial clone  ─ 只下载对象一部分：两者常一起用，monorepo 标配\ngc / maintenance ─ 让 Git 自己维护自己；手动 gc 在\\\"重写大量历史后\\\"或\\\"仓库明显变慢\\\"\ndetached HEAD  ─ 不是错误，是姿势：看历史、bisect、rebase 内部都在用；\n                 在里面 commit 了就挂名牌，别切走。\n\n一句话总括：\n  这些概念都建立在前五张地图上，没有一个引入新原理——\n  它们只是\\\"造珠子 + 挪名牌 + 挪指针\\\"的新组合。\n",
+  "class": "OTHER"
+ },
+ {
+  "file": "manuscript/ch14-copilot.md",
+  "block_idx": 0,
+  "lines": 78,
+  "draw_chars": 1342,
+  "preview": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+  "body": "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n                         《Git 的概念地图》· 全书总图\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n  ┌───────────────────────────────────────────────────────────┐\n  │                    地图 1 · 仓库（第 1 章）                 │\n  │   .git/ = 内容寻址数据库 + 引用表 · 自包含 · 可脱网          │\n  │                        ┌─────────┐                        │\n  │                        │  档案馆  │                        │\n  │                        └────┬────┘                        │\n  └─────────────────────────────┼─────────────────────────────┘\n                                │  装着\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │                地图 2 · 提交（第 2 章）——珠子              │\n  │   commit = 全量快照 + parent + 元信息 + SHA · 不可变        │\n  │                                                           │\n  │       ● ── ● ── ● ── ● ── ●          （一条项链）          │\n  │       └── 工作目录 → add → 暂存区 → commit ── 三区模型 ──┘  │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  串成\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │              地图 3 · 分支（第 3 章）——名牌                │\n  │   branch = refs/heads/ 里的一行 SHA · 可移动的指针          │\n  │                                                           │\n  │       ●───●───●───● ◀── main（一张贴纸）                   │\n  │            \\                                              │\n  │             ●───● ◀── feature/x    HEAD ─▶ (feature/x)    │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  也存在于\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │           地图 4 · 远程（第 4 章）——镜子里的项链           │\n  │   remote = 别名 + URL · 远程分支 = 本地缓存                 │\n  │                                                           │\n  │      本地：●─●─●◀main       origin/main ─▶●─●─●：镜像       │\n  │              ↑↓ 跨网的只有 fetch 家族与 push ↑↓            │\n  │           合并永远发生在\\\"你的\\\"这一边                       │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  会被\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │            地图 5 · 历史（第 5 章）——重串项链              │\n  │   珠子不可变，项链可塑 · 重写 = 造新珠 + 挪名牌 + 旧珠进反射 │\n  │                                                           │\n  │       merge  ─ 打结不重串                                  │\n  │       rebase ─ 重串一段                                    │\n  │       reset  ─ 挪名牌（不删珠子）                          │\n  │       revert ─ 造抵消珠子（历史反悔）                      │\n  │       黄金规则：共享分支不重写                              │\n  │       reflog ─ 本地黑匣子，默认 30/90 天                    │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  在此之上是\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │             六个场景（第 6–11 章）· 判断在你脑里            │\n  │   写提交 · 选分支策略 · 多任务并行 · 冲突 · 恢复 · 协作     │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  受限于\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │              一道防线（第 12 章）· 红黄绿边界               │\n  │   🟢 生成信息 / 整理未推送历史 / 解冲突                     │\n  │   🟡 force push · reset --hard · 重写共享历史（你亲手确认） │\n  │   🔴 凭证 · 生产环境 · 破坏性且不可逆                       │\n  └─────────────────────────────┬─────────────────────────────┘\n                                │  伸出的是\n                                ▼\n  ┌───────────────────────────────────────────────────────────┐\n  │             八条小路 · 十个工具（第 13 章）· 都不是新原理   │\n  │   stash · tag · cherry-pick · bisect · submodule ·        │\n  │   subtree · sparse-checkout / partial clone · gc ·        │\n  │   detached HEAD                                           │\n  │   （都建立在\\\"造珠子 + 挪名牌\\\"之上）                        │\n  └───────────────────────────────────────────────────────────┘\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n",
+  "class": "TREE"
+ },
+ {
+  "file": "manuscript/ch14-copilot.md",
+  "block_idx": 1,
+  "lines": 24,
+  "draw_chars": 158,
+  "preview": "                  第 0 章：cargo cult 的诊断（10 道题量出白斑）",
+  "body": "                  第 0 章：cargo cult 的诊断（10 道题量出白斑）\n                                     │\n              ┌──────────────────────┼──────────────────────┐\n              ▼                      ▼                      ▼\n        五张地图（Ch1-5）       六个场景（Ch6-11）      一道防线（Ch12）\n     仓库/提交/分支/远程/历史     写/策略/并行/冲突       🟢🟡🔴 边界\n                                    /恢复/协作\n              │                      │                      │\n              └──────────────────────┼──────────────────────┘\n                                     ▼\n                       八条小路（Ch13）· 都不是新原理\n                                     │\n                                     ▼\n                       第 14 章：合拢 · 把知变成反射\n                                     │\n              ┌──────────────────────┼──────────────────────┐\n              ▼                      ▼                      ▼\n        全书总图（§14.3）        追问三式（§14.4）        30 天计划（§14.6）\n        随身心智装备             AI 校对概念              知 → 内化\n                                     │\n                                     ▼\n                          你 = 副驾旁边那个位置的司机\n                          AI = 你的 Git 副驾\n                          地图 = 仪表盘\n",
+  "class": "TREE"
+ }
+]

@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Git 事故恢复决策树",
+    "subtitle": "Ch10 · 珠子被 push 过吗？旧 clone 还有吗？",
+    "output": "ch10-decision-tree.architecture.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "q1",
+      "type": "security",
+      "label": "第一问",
+      "sublabel": "这颗珠子被 push 到远端过吗",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        150,
+        72
+      ],
+      "tag": "STEP 1"
+    },
+    {
+      "id": "local_branch",
+      "type": "backend",
+      "label": "本地事故",
+      "sublabel": "从未 push 远端",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        150,
+        72
+      ],
+      "tag": "本地分支"
+    },
+    {
+      "id": "q2",
+      "type": "security",
+      "label": "第二问",
+      "sublabel": "你或别人手上还有旧 clone 吗",
+      "pos": [
+        224,
+        152
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "STEP 2"
+    },
+    {
+      "id": "recover_local",
+      "type": "backend",
+      "label": "reflog 恢复",
+      "sublabel": "一条命令搞定",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        150,
+        72
+      ],
+      "tag": "低风险 · 5 分钟"
+    },
+    {
+      "id": "recover_merge",
+      "type": "database",
+      "label": "合流恢复",
+      "sublabel": "revert + push",
+      "pos": [
+        224,
+        270
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "中等 · 30 分钟"
+    },
+    {
+      "id": "recover_forward",
+      "type": "frontend",
+      "label": "前进恢复",
+      "sublabel": "往前造新珠子",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        150,
+        72
+      ],
+      "tag": "高风险 · 先吊销凭证"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "事故恢复路径（按场景分流）",
+      "wraps": [
+        "recover_local",
+        "recover_merge",
+        "recover_forward"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "q1-local",
+      "from": "q1",
+      "to": "local_branch",
+      "label": "否 · 事故在本地",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q1-q2",
+      "from": "q1",
+      "to": "q2",
+      "label": "是 · 跨远端",
+      "variant": "security"
+    },
+    {
+      "id": "local-reflog",
+      "from": "local_branch",
+      "to": "recover_local",
+      "label": "启用 reflog",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q2-merge",
+      "from": "q2",
+      "to": "recover_merge",
+      "label": "有 · 旧 clone",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q2-forward",
+      "from": "q2",
+      "to": "recover_forward",
+      "label": "无 · 先吊销凭证",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "本地事故：reflog 救你",
+      "items": [
+        "所有本地动作有 reflog 记录",
+        "reset --hard ORIG_HEAD 撤销任意修改",
+        "5 分钟恢复"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "远端事故但有旧 clone",
+      "items": [
+        "同事电脑上有完整历史",
+        "从旧 clone 找回目标 SHA",
+        "策略：revert + push",
+        "30 分钟恢复"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "远端事故且无旧 clone",
+      "items": [
+        "历史可能不可恢复",
+        "先吊销凭证（API key / 私钥）",
+        "再考虑 forward 策略",
+        "扩散成本：未定义"
+      ]
+    }
+  ]
+}

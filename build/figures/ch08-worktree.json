@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Worktree：同一个 .git/ 铺开多张工作台",
+    "subtitle": "Ch08 · .git/ 共享，三个独立工作目录分别站在不同分支",
+    "output": "ch08-worktree.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "git",
+      "type": "database",
+      "label": ".git/ 共享数据库",
+      "sublabel": "objects/ + refs/ + worktrees/",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        420,
+        72
+      ],
+      "tag": "SINGLE SOURCE OF TRUTH"
+    },
+    {
+      "id": "main_wt",
+      "type": "frontend",
+      "label": "主工作台",
+      "sublabel": "~/proj/ · main",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        100,
+        72
+      ],
+      "tag": "DEFAULT"
+    },
+    {
+      "id": "wt_a",
+      "type": "frontend",
+      "label": "工作台 A",
+      "sublabel": "~/proj-hot/ · hotfix",
+      "pos": [
+        174,
+        152
+      ],
+      "size": [
+        115,
+        72
+      ],
+      "tag": "PARALLEL"
+    },
+    {
+      "id": "wt_b",
+      "type": "frontend",
+      "label": "工作台 B",
+      "sublabel": "~/proj-rev/ · pr/42",
+      "pos": [
+        329,
+        152
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "PARALLEL"
+    },
+    {
+      "id": "wt_create",
+      "type": "backend",
+      "label": "worktree add",
+      "sublabel": "新工作台 + 切分支",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        100,
+        72
+      ],
+      "tag": "CREATE"
+    },
+    {
+      "id": "wt_list",
+      "type": "backend",
+      "label": "worktree list",
+      "sublabel": "列出所有工作台",
+      "pos": [
+        174,
+        270
+      ],
+      "size": [
+        115,
+        72
+      ],
+      "tag": "LIST"
+    },
+    {
+      "id": "wt_remove",
+      "type": "backend",
+      "label": "worktree remove",
+      "sublabel": "删除工作台（分支保留）",
+      "pos": [
+        329,
+        270
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "REMOVE"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "三个工作台共享 .git/，互不干扰",
+      "wraps": [
+        "main_wt",
+        "wt_a",
+        "wt_b"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "git-main",
+      "from": "git",
+      "to": "main_wt",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "git-wt_a",
+      "from": "git",
+      "to": "wt_a",
+      "variant": "emphasis"
+    },
+    {
+      "id": "git-wt_b",
+      "from": "git",
+      "to": "wt_b",
+      "variant": "emphasis"
+    },
+    {
+      "id": "main-wt_create",
+      "from": "main_wt",
+      "to": "wt_create",
+      "label": "加新工作台",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "wt_a-list",
+      "from": "wt_a",
+      "to": "wt_list",
+      "label": "列出",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "wt_b-remove",
+      "from": "wt_b",
+      "to": "wt_remove",
+      "label": "清理",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Worktree 的本质",
+      "items": [
+        "一个 .git/ 数据库 + 多个独立工作目录",
+        "每个工作台有独立 HEAD，但所有引用共享 .git/refs/",
+        "切到 A 工作台切分支不会影响 B 工作台",
+        "适合：并行 AI agent / 多特性并行开发 / 评审期间还要改其它"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "常见坑",
+      "items": [
+        "同一分支不能在两个工作台同时 checkout（warning）",
+        "删除工作台前先 commit，否则未保存改动丢失",
+        ".git/worktrees/ 子目录是元数据，删了要手动 prune"
+      ]
+    }
+  ]
+}

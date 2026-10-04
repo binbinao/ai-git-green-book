@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Git 安全三道闸",
+    "subtitle": "Ch12 · pre-commit → push protection → secret scanning",
+    "output": "ch12-three-gates.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "developer",
+      "type": "external",
+      "label": "开发者本地",
+      "sublabel": "在编辑器里写代码",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        95,
+        72
+      ]
+    },
+    {
+      "id": "gate1",
+      "type": "security",
+      "label": "第一道闸 · pre-commit",
+      "sublabel": "本地扫描敏感字段",
+      "pos": [
+        203,
+        34
+      ],
+      "size": [
+        225,
+        72
+      ],
+      "tag": "gitleaks / trufflehog"
+    },
+    {
+      "id": "git_push",
+      "type": "backend",
+      "label": "git push",
+      "sublabel": "推送至远端",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        95,
+        72
+      ]
+    },
+    {
+      "id": "gate2",
+      "type": "security",
+      "label": "第二道闸 · 服务端 push protection",
+      "sublabel": "服务器端拦截",
+      "pos": [
+        203,
+        152
+      ],
+      "size": [
+        225,
+        72
+      ],
+      "tag": "GitHub / GitLab"
+    },
+    {
+      "id": "remote",
+      "type": "cloud",
+      "label": "远端仓库",
+      "sublabel": "origin / GitHub",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        95,
+        72
+      ]
+    },
+    {
+      "id": "gate3",
+      "type": "security",
+      "label": "第三道闸 · secret scanning",
+      "sublabel": "事后告警与自动撤销",
+      "pos": [
+        203,
+        270
+      ],
+      "size": [
+        225,
+        72
+      ],
+      "tag": "事后补救 · 数分钟"
+    },
+    {
+      "id": "monitor",
+      "type": "frontend",
+      "label": "安全告警",
+      "sublabel": "SIEM / 通知",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        95,
+        72
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "三道闸总拦截率 ≈ 99%",
+      "wraps": [
+        "gate1",
+        "gate2",
+        "gate3"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "dev-gate1",
+      "from": "developer",
+      "to": "gate1",
+      "label": "git commit",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "gate1-git",
+      "from": "gate1",
+      "to": "git_push",
+      "label": "放行后 commit",
+      "variant": "default"
+    },
+    {
+      "id": "git-gate2",
+      "from": "git_push",
+      "to": "gate2",
+      "label": "git push",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "gate2-remote",
+      "from": "gate2",
+      "to": "remote",
+      "label": "放行后入库",
+      "variant": "default"
+    },
+    {
+      "id": "remote-gate3",
+      "from": "remote",
+      "to": "gate3",
+      "label": "持续扫描",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "gate3-monitor",
+      "from": "gate3",
+      "to": "monitor",
+      "label": "告警通知",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "三道闸协同 = 99% 拦截",
+      "items": [
+        "每一道闸独立判断，盲区互补",
+        "本地 scan 拦新代码、push 拦中间过程、scanning 拦历史泄漏",
+        "少一道闸，事故概率翻倍"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "常见盲区",
+      "items": [
+        "新同事没装 pre-commit → 第一道失效",
+        "格式不标准的自研 token → 第二道失效",
+        "第三道是事后补救，泄漏到扫描到有分钟-小时窗口"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "git clone：远端 → 本地的完整复制",
+    "subtitle": "Ch01 · 远端服务器 .git/ → 本地 .git/（objects+refs 全量）+ 工作区展开",
+    "output": "ch01-clone.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "remote_server",
+      "type": "cloud",
+      "label": "远端服务器",
+      "sublabel": "GitHub / GitLab / 内网 Gitea",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "REMOTE"
+    },
+    {
+      "id": "remote_git",
+      "type": "database",
+      "label": "project.git/",
+      "sublabel": "objects/ + refs/ 全量",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "全量数据"
+    },
+    {
+      "id": "local_git",
+      "type": "database",
+      "label": ".git/",
+      "sublabel": "objects/ + refs/ 全量拷贝",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "LOCAL FULL COPY"
+    },
+    {
+      "id": "working_tree",
+      "type": "frontend",
+      "label": "src/ README.md ...",
+      "sublabel": "从 .git 里读档铺出来的工作区",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "WORKING TREE"
+    },
+    {
+      "id": "git_clone",
+      "type": "backend",
+      "label": "git clone <url>",
+      "sublabel": "下载远端 .git 全量 + 铺出工作区",
+      "pos": [
+        240,
+        152
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "FETCH ALL"
+    },
+    {
+      "id": "checkout",
+      "type": "backend",
+      "label": "git checkout HEAD",
+      "sublabel": "从 objects 铺出 HEAD 的工作区",
+      "pos": [
+        240,
+        270
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "MATERIALIZE"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "本地仓库（一个自包含的迷你世界）",
+      "wraps": [
+        "local_git",
+        "working_tree"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "server-remote_git",
+      "from": "remote_server",
+      "to": "remote_git",
+      "label": "托管",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "clone-action",
+      "from": "git_clone",
+      "to": "remote_git",
+      "label": "驱动",
+      "variant": "default",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "clone-result",
+      "from": "git_clone",
+      "to": "local_git",
+      "label": "产生 .git/ 全量",
+      "variant": "emphasis"
+    },
+    {
+      "id": "local_git-checkout",
+      "from": "local_git",
+      "to": "working_tree",
+      "label": "从 objects 铺出工作区",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "checkout-action",
+      "from": "checkout",
+      "to": "local_git",
+      "label": "驱动",
+      "variant": "default",
+      "fromSide": "left",
+      "toSide": "right"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "本地仓库是自包含的",
+      "items": [
+        ".git/ 包含你需要的全部历史（objects + refs）",
+        "断网后仍可 commit / log / checkout 任意旧版",
+        "推送到远端是「同步」而不是「主备份」"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "工作区是 .git 的视图",
+      "items": [
+        "src/ 里的每个文件都对应 .git/objects/ 里的一个 blob",
+        "改工作区 = 修改这个视图",
+        "git add + commit = 把改动推回 .git 档案库"
+      ]
+    }
+  ]
+}

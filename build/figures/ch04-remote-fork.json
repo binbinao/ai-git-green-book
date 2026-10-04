@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "远程协作三层模型：upstream → origin → 本地",
+    "subtitle": "Ch04 · Fork 平台的官方仓库，你 push 到自己 fork，Pull Request 回流",
+    "output": "ch04-remote-fork.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "upstream",
+      "type": "cloud",
+      "label": "上游项目 (upstream)",
+      "sublabel": "github.com/original/project",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "官方仓库"
+    },
+    {
+      "id": "origin",
+      "type": "cloud",
+      "label": "你的 fork (origin)",
+      "sublabel": "github.com/<你>/project（fork）",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "你的远端"
+    },
+    {
+      "id": "local",
+      "type": "database",
+      "label": "本地仓库",
+      "sublabel": "refs/remotes/* 全量引用",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "LOCAL"
+    },
+    {
+      "id": "push_to_origin",
+      "type": "backend",
+      "label": "git push",
+      "sublabel": "本地 → origin（你的 fork）",
+      "pos": [
+        283,
+        152
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "PUSH"
+    },
+    {
+      "id": "pr",
+      "type": "frontend",
+      "label": "Pull Request",
+      "sublabel": "origin → upstream（合并回官方）",
+      "pos": [
+        283,
+        34
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "MERGE"
+    },
+    {
+      "id": "clone",
+      "type": "backend",
+      "label": "git clone",
+      "sublabel": "origin → 本地（首次拉取）",
+      "pos": [
+        283,
+        270
+      ],
+      "size": [
+        175,
+        72
+      ],
+      "tag": "FETCH"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "三层都在远端（GitHub）",
+      "wraps": [
+        "upstream",
+        "origin"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "upstream-origin",
+      "from": "upstream",
+      "to": "origin",
+      "label": "Fork（平台操作）",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "origin-local",
+      "from": "origin",
+      "to": "local",
+      "label": "git clone",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "local-push",
+      "from": "local",
+      "to": "push_to_origin",
+      "label": "提交后推送",
+      "variant": "default"
+    },
+    {
+      "id": "push-pr",
+      "from": "push_to_origin",
+      "to": "pr",
+      "label": "提 PR",
+      "variant": "default",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "pr-merge",
+      "from": "pr",
+      "to": "upstream",
+      "label": "维护者合并",
+      "variant": "default",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "clone-pull",
+      "from": "clone",
+      "to": "local",
+      "label": "拉取代码",
+      "variant": "default",
+      "fromSide": "left",
+      "toSide": "right"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "为什么用 Fork 模型",
+      "items": [
+        "你无权直接 push 到 upstream（官方仓库）",
+        "Fork 给你一份完全可写的拷贝（origin）",
+        "本地仓库拉 origin 的代码来开发",
+        "改完 push 到 origin，再 PR 请求官方合并"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "常见命令",
+      "items": [
+        "git remote add upstream <官方 URL>：手动添加 upstream 远程",
+        "git fetch upstream：拉取官方最新进度",
+        "git push origin <branch>：推送到自己 fork",
+        "gh pr create / 平台 UI：创建 PR"
+      ]
+    }
+  ]
+}

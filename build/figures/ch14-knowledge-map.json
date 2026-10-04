@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "全书总图：5 概念 + 6 场景 + 1 防线 + 8 小路 + 3 产出",
+    "subtitle": "Ch14 · cargo cult 诊断 → 三类内容 → 八条小路 → 三件产出",
+    "output": "ch14-knowledge-map.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "diagnose",
+      "type": "external",
+      "label": "第 0 章 cargo cult 诊断",
+      "sublabel": "10 道题量出你的白斑",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "STEP 0"
+    },
+    {
+      "id": "five_maps",
+      "type": "backend",
+      "label": "五张地图 Ch1-5",
+      "sublabel": "仓库/提交/分支/远程/历史",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "概念层"
+    },
+    {
+      "id": "six_scenes",
+      "type": "frontend",
+      "label": "六个场景 Ch6-11",
+      "sublabel": "写/策略/并行/冲突/恢复/协作",
+      "pos": [
+        249,
+        152
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "场景层"
+    },
+    {
+      "id": "one_defense",
+      "type": "security",
+      "label": "一道防线 Ch12",
+      "sublabel": "🟢🟡🔴 红黄绿边界 · 安全",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "边界层"
+    },
+    {
+      "id": "eight_lanes",
+      "type": "database",
+      "label": "八条小路 Ch13",
+      "sublabel": "stash、cherry-pick、bisect…",
+      "pos": [
+        249,
+        270
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "进阶层"
+    },
+    {
+      "id": "chapter_14",
+      "type": "frontend",
+      "label": "第 14 章 合拢",
+      "sublabel": "把知变成反射",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "合拢"
+    },
+    {
+      "id": "total_map",
+      "type": "backend",
+      "label": "全书总图 §14.3",
+      "sublabel": "随身心智装备",
+      "pos": [
+        249,
+        388
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "产出 1"
+    },
+    {
+      "id": "followup_3",
+      "type": "frontend",
+      "label": "追问三式 §14.4",
+      "sublabel": "AI 校对概念",
+      "pos": [
+        34,
+        506
+      ],
+      "size": [
+        160,
+        72
+      ],
+      "tag": "产出 2"
+    },
+    {
+      "id": "plan_30d",
+      "type": "database",
+      "label": "30 天计划 §14.6",
+      "sublabel": "知 → 内化",
+      "pos": [
+        249,
+        506
+      ],
+      "size": [
+        155,
+        72
+      ],
+      "tag": "产出 3"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "前 13 章：5+6+1+8 = 20 个知识模块",
+      "wraps": [
+        "five_maps",
+        "six_scenes",
+        "one_defense",
+        "eight_lanes"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "第 14 章：三件产出",
+      "wraps": [
+        "total_map",
+        "followup_3",
+        "plan_30d"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "diagnose-five",
+      "from": "diagnose",
+      "to": "five_maps",
+      "label": "先补底",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "diagnose-six",
+      "from": "diagnose",
+      "to": "six_scenes",
+      "label": "再练手",
+      "variant": "default"
+    },
+    {
+      "id": "diagnose-one",
+      "from": "diagnose",
+      "to": "one_defense",
+      "label": "再守界",
+      "variant": "default"
+    },
+    {
+      "id": "five-eight",
+      "from": "five_maps",
+      "to": "eight_lanes",
+      "label": "再走小路",
+      "variant": "default"
+    },
+    {
+      "id": "six-eight",
+      "from": "six_scenes",
+      "to": "eight_lanes",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "one-eight",
+      "from": "one_defense",
+      "to": "eight_lanes",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "eight-c14",
+      "from": "eight_lanes",
+      "to": "chapter_14",
+      "label": "合拢",
+      "variant": "emphasis"
+    },
+    {
+      "id": "c14-total",
+      "from": "chapter_14",
+      "to": "total_map",
+      "label": "产出 1",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "c14-followup",
+      "from": "chapter_14",
+      "to": "followup_3",
+      "label": "产出 2",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "c14-plan",
+      "from": "chapter_14",
+      "to": "plan_30d",
+      "label": "产出 3",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "本书结构哲学",
+      "items": [
+        "三类内容（地图/场景/防线）= 概念 + 实践 + 安全",
+        "八条小路 = 进阶技巧，但底层概念不超三类内容",
+        "第 14 章 = 三件产出（总图/追问/30 天）= 把外部知识变内部反射"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "副驾比喻：你是司机，AI 是 Git 副驾",
+      "items": [
+        "你 = 副驾旁边那个位置的司机",
+        "AI = 你的 Git 副驾",
+        "地图 = 仪表盘",
+        "你决定方向，AI 帮你看盲区"
+      ]
+    }
+  ]
+}

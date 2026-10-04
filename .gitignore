@@ -1,2 +1,15 @@
 .workbuddy/
 .DS_Store
+
+# ---- 构建中间件（由 build.sh 生成，可随时重建）----
+build/.venv/
+build/book.md
+build/book-body.typ
+build/book-final.typ
+build/figures/.pre-rerender/
+
+# ---- 本地产物 ----
+output/
+
+# ---- 本地备份（目录与 .tgz 都要挡）----
+.backup-*

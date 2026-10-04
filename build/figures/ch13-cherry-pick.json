@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "cherry-pick：从 feature 摘 Y 到 main",
+    "subtitle": "Ch13 · 新珠子 Y' 内容=Y，SHA 不同；feature 原样保留",
+    "output": "ch13-cherry-pick.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "A",
+      "type": "database",
+      "label": "A",
+      "sublabel": "main 起点",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "B",
+      "type": "database",
+      "label": "B",
+      "sublabel": "main",
+      "pos": [
+        142,
+        152
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "C",
+      "type": "database",
+      "label": "C",
+      "sublabel": "main",
+      "pos": [
+        250,
+        152
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": "原 HEAD"
+    },
+    {
+      "id": "Yprime",
+      "type": "database",
+      "label": "Y'",
+      "sublabel": "内容=Y，SHA 不同",
+      "pos": [
+        250,
+        388
+      ],
+      "size": [
+        100,
+        72
+      ],
+      "tag": "cherry-pick 后"
+    },
+    {
+      "id": "X",
+      "type": "database",
+      "label": "X",
+      "sublabel": "feature",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "Y",
+      "type": "database",
+      "label": "Y",
+      "sublabel": "feature",
+      "pos": [
+        142,
+        270
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": "★ 要摘"
+    },
+    {
+      "id": "Z",
+      "type": "database",
+      "label": "Z",
+      "sublabel": "feature",
+      "pos": [
+        250,
+        270
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "main",
+      "type": "backend",
+      "label": "main",
+      "sublabel": "指 Y'（新 HEAD）",
+      "pos": [
+        250,
+        34
+      ],
+      "size": [
+        100,
+        72
+      ],
+      "tag": ""
+    },
+    {
+      "id": "feature",
+      "type": "frontend",
+      "label": "feature",
+      "sublabel": "指 Z（不变）",
+      "pos": [
+        142,
+        34
+      ],
+      "size": [
+        76,
+        72
+      ],
+      "tag": ""
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "main 链（Y' 是从 feature 摘来的）",
+      "wraps": [
+        "A",
+        "B",
+        "C",
+        "Yprime"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "feature 链（原样保留）",
+      "wraps": [
+        "X",
+        "Y",
+        "Z"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "A-B",
+      "from": "A",
+      "to": "B",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "B-C",
+      "from": "B",
+      "to": "C",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "C-Yprime",
+      "from": "C",
+      "to": "Yprime",
+      "label": "cherry-pick",
+      "variant": "emphasis"
+    },
+    {
+      "id": "X-Y",
+      "from": "X",
+      "to": "Y",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "Y-Z",
+      "from": "Y",
+      "to": "Z",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "Y-Yprime",
+      "from": "Y",
+      "to": "Yprime",
+      "label": "摘取",
+      "variant": "security"
+    },
+    {
+      "id": "main-Yprime",
+      "from": "main",
+      "to": "Yprime",
+      "label": "指",
+      "variant": "default"
+    },
+    {
+      "id": "feature-Z",
+      "from": "feature",
+      "to": "Z",
+      "label": "指",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "cherry-pick 的本质",
+      "items": [
+        "把某条历史 commit 重新「做一遍」，产生内容相同 SHA 不同的新珠子",
+        "Y 本身不变，Y' 是 main 上的新珠子",
+        "常用：把 hotfix 推回所有受影响的 release 分支"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Y' 继承自 C（不是 Y 的父 commit）",
+      "items": [
+        "Y' 的父 commit 是当前 HEAD（C），不是 Y",
+        "Git 完整重放 Y 的 diff 到 C 上",
+        "冲突时可能与直接 merge feature 冲突位置不同"
+      ]
+    }
+  ]
+}

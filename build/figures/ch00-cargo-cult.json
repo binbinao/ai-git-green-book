@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Cargo-Cult Git 负循环",
+    "subtitle": "Ch00 · 问题 → 搜 → 抄 → 跑 → 变种 → 失灵 → 更慌 → 抄更多",
+    "output": "ch00-cargo-cult.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "problem",
+      "type": "security",
+      "label": "遇到问题",
+      "sublabel": "代码报错 / 不工作",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 1"
+    },
+    {
+      "id": "search",
+      "type": "backend",
+      "label": "搜命令",
+      "sublabel": "Stack Overflow / AI",
+      "pos": [
+        205,
+        34
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 2"
+    },
+    {
+      "id": "copy",
+      "type": "backend",
+      "label": "抄命令",
+      "sublabel": "粘贴 · 回车 · 碰运气",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 3"
+    },
+    {
+      "id": "works",
+      "type": "frontend",
+      "label": "能跑！",
+      "sublabel": "暂时通过",
+      "pos": [
+        205,
+        152
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 4"
+    },
+    {
+      "id": "variant",
+      "type": "security",
+      "label": "问题变种",
+      "sublabel": "同样的报错，略有不同",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 5"
+    },
+    {
+      "id": "panic",
+      "type": "security",
+      "label": "抄的命令失灵",
+      "sublabel": "越慌越死锁",
+      "pos": [
+        205,
+        270
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 6"
+    },
+    {
+      "id": "more_copy",
+      "type": "backend",
+      "label": "更慌 · 抄更多",
+      "sublabel": "再搜 · 再抄 · 越走越远",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "STEP 7"
+    },
+    {
+      "id": "far",
+      "type": "external",
+      "label": "离「理解」越来越远",
+      "sublabel": "离理解越来越远",
+      "pos": [
+        205,
+        388
+      ],
+      "size": [
+        125,
+        72
+      ],
+      "tag": "终局"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "负循环（没出路）",
+      "wraps": [
+        "problem",
+        "search",
+        "copy",
+        "works",
+        "variant",
+        "panic",
+        "more_copy",
+        "far"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "p-s",
+      "from": "problem",
+      "to": "search",
+      "label": "搜",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "s-c",
+      "from": "search",
+      "to": "copy",
+      "label": "找结果",
+      "variant": "default"
+    },
+    {
+      "id": "c-w",
+      "from": "copy",
+      "to": "works",
+      "label": "粘贴",
+      "variant": "default",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "w-v",
+      "from": "works",
+      "to": "variant",
+      "label": "变种",
+      "variant": "emphasis"
+    },
+    {
+      "id": "v-p",
+      "from": "variant",
+      "to": "panic",
+      "label": "失灵",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "p-m",
+      "from": "panic",
+      "to": "more_copy",
+      "label": "更慌",
+      "variant": "security"
+    },
+    {
+      "id": "m-f",
+      "from": "more_copy",
+      "to": "far",
+      "label": "更远",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "断环方式",
+      "items": [
+        "慢一步：先 30 分钟搞清报错信息",
+        "用 AI 不是抄命令，是让 AI 解释每一步",
+        "写下「我为什么这样改」一句话 comment",
+        "读 git log --oneline -20 看清自己干了什么"
+      ]
+    }
+  ]
+}

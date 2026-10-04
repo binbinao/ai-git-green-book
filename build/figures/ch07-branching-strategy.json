@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "分支策略选择决策树",
+    "subtitle": "Ch07 · 拿不准就用 GitHub Flow，再视复杂度升级或降级",
+    "output": "ch07-branching-strategy.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "q1",
+      "type": "security",
+      "label": "Q1 客户现场多版本负担？",
+      "sublabel": "要不要同时跑多个版本给客户",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "tag": "STEP 1"
+    },
+    {
+      "id": "q2a",
+      "type": "security",
+      "label": "Q2A 有冻结+QA 仪式？",
+      "sublabel": "发布前要冻结代码做 QA",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "tag": "STEP 2A"
+    },
+    {
+      "id": "q2b",
+      "type": "security",
+      "label": "Q2B 工程能力到 L3？",
+      "sublabel": "feature flag + CD + 可观测",
+      "pos": [
+        254,
+        152
+      ],
+      "size": [
+        165,
+        72
+      ],
+      "tag": "STEP 2B"
+    },
+    {
+      "id": "gitflow",
+      "type": "backend",
+      "label": "GitFlow",
+      "sublabel": "main+develop+release+hotfix",
+      "pos": [
+        34,
+        270
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "tag": "完整流程"
+    },
+    {
+      "id": "simplified_gf",
+      "type": "backend",
+      "label": "简化 GitFlow",
+      "sublabel": "main+hotfix+release 去掉 develop",
+      "pos": [
+        34,
+        388
+      ],
+      "size": [
+        180,
+        72
+      ],
+      "tag": "中等流程"
+    },
+    {
+      "id": "trunk",
+      "type": "frontend",
+      "label": "Trunk-Based",
+      "sublabel": "主分支持续集成 + feature flag",
+      "pos": [
+        254,
+        270
+      ],
+      "size": [
+        165,
+        72
+      ],
+      "tag": "高成熟度"
+    },
+    {
+      "id": "github_flow",
+      "type": "frontend",
+      "label": "GitHub Flow",
+      "sublabel": "main + feature branch + PR",
+      "pos": [
+        254,
+        388
+      ],
+      "size": [
+        165,
+        72
+      ],
+      "tag": "轻量起步"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "四种策略（按复杂度从高到低）",
+      "wraps": [
+        "gitflow",
+        "simplified_gf",
+        "trunk",
+        "github_flow"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "q1-q2a",
+      "from": "q1",
+      "to": "q2a",
+      "label": "有 · 多版本负担",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q1-q2b",
+      "from": "q1",
+      "to": "q2b",
+      "label": "没有 · 直接迭代",
+      "variant": "default"
+    },
+    {
+      "id": "q2a-gitflow",
+      "from": "q2a",
+      "to": "gitflow",
+      "label": "是 · 严格",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q2a-simplified",
+      "from": "q2a",
+      "to": "simplified_gf",
+      "label": "否 · 简化",
+      "variant": "default"
+    },
+    {
+      "id": "q2b-trunk",
+      "from": "q2b",
+      "to": "trunk",
+      "label": "是 · 高成熟度",
+      "variant": "default",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "q2b-github",
+      "from": "q2b",
+      "to": "github_flow",
+      "label": "否 · 轻量",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "兜底规则",
+      "items": [
+        "拿不准时先用 GitHub Flow（最普适、够用）",
+        "功能变强 → 往 Trunk-Based 迁（高成熟度）",
+        "需求变复杂 → 往 GitFlow 靠（多版本负担）",
+        "**不要一开始就选最重的**"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "选择是公开表态",
+      "items": [
+        "分支策略 = 团队对「怎么协作、怎么发布、怎么承担风险」的公开表态",
+        "选错代价：发布混乱 / 合流冲突 / 团队抗拒",
+        "升级时机：QA 反馈变多 / 团队增长 / 产品上线节奏变快"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Git 三区：工作目录 ↔ 暂存区 ↔ 仓库",
+    "subtitle": "Ch02 · add 推进、commit 落盘、checkout/restore 回拉",
+    "output": "ch02-three-areas.html",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "animation": "trace"
+  },
+  "components": [
+    {
+      "id": "working",
+      "type": "frontend",
+      "label": "工作目录",
+      "sublabel": "你编辑的文件",
+      "pos": [
+        34,
+        34
+      ],
+      "size": [
+        115,
+        72
+      ],
+      "tag": "WORKING DIR"
+    },
+    {
+      "id": "staging",
+      "type": "database",
+      "label": "暂存区",
+      "sublabel": "下一次 commit 的内容",
+      "pos": [
+        34,
+        152
+      ],
+      "size": [
+        115,
+        72
+      ],
+      "tag": "STAGING AREA"
+    },
+    {
+      "id": "repo",
+      "type": "backend",
+      "label": "仓库 (.git/objects/)",
+      "sublabel": "已提交的历史 · 一颗颗珠子的档案库",
+      "pos": [
+        228,
+        152
+      ],
+      "size": [
+        185,
+        72
+      ],
+      "tag": "REPOSITORY"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "三区 + 三个推进方向",
+      "wraps": [
+        "working",
+        "staging",
+        "repo"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "working-staging",
+      "from": "working",
+      "to": "staging",
+      "label": "add 推进",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "staging-repo",
+      "from": "staging",
+      "to": "repo",
+      "label": "commit 落盘",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "repo-working",
+      "from": "repo",
+      "to": "working",
+      "label": "checkout/restore 回拉",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "三区的意义",
+      "items": [
+        "工作目录：你看到的文件",
+        "暂存区：下一次 commit 的预览（精细控制）",
+        "仓库：历史珠子档案",
+        "三区分开 = 你能选择「哪些改动放进这次 commit」"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "常见坑",
+      "items": [
+        "git add . 之前想清楚（这会推进所有修改）",
+        "git reset --hard 会清掉工作目录未提交改动（reflog 还能救）",
+        "commit 后只能通过新 commit 来补救（不修改历史）"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "五条命令：谁把数据推到哪一层",
+      "items": [
+        "git add <file> — 把工作目录的当前内容加入暂存区",
+        "git commit — 把暂存区内容造一颗珠子落进仓库",
+        "git checkout / restore — 从仓库读出某个版本到工作目录",
+        "git reset --soft — 回退 HEAD → 暂存区（不改工作目录）",
+        "git reset --hard — 回退 HEAD + 暂存区 + 工作目录（小心！）"
+      ]
+    }
+  ]
+}
